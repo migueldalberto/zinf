@@ -19,11 +19,24 @@ typedef struct {
 int main () {
   InitWindow(LARGURA, ALTURA, "ZINF");
 
+  Jogador jogador = {
+    .vida = 3,
+    .pontuacao = 0,
+    .posicao = (Vector2){ LARGURA / 2, ALTURA / 2},
+    .orientacao = LESTE,
+    .espada = false,
+    .texturas = {
+      LoadTexture("assets/jogador-norte.png"), LoadTexture("assets/jogador-sul.png"),
+      LoadTexture("assets/jogador-leste.png"), LoadTexture("assets/jogador-oeste.png"),
+    }
+  };
+
   SetTargetFPS(30);
 
   while(!WindowShouldClose()) {
     BeginDrawing();
     ClearBackground(WHITE);
+
     EndDrawing();
   }
 
