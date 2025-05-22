@@ -29,7 +29,7 @@ void DesenharStatus(Jogo j) {
 		      j.jogador.vida,
 		      j.nivel,
 		      j.jogador.pontuacao),
-	   0,
+	   16,
 	   16,
 	   32,
 	   WHITE
