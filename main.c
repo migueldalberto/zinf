@@ -16,6 +16,26 @@ typedef struct {
   Texture2D texturas[4];
 } Jogador;
 
+typedef struct {
+  Jogador jogador;
+  int nivel;
+} Jogo;
+
+
+void DesenharStatus(Jogo j) {
+  DrawRectangle(0, 0, LARGURA, 60, BLACK);
+  DrawText(
+	   TextFormat("vida: %d \tnível: %d \tpontuação: %d",
+		      j.jogador.vida,
+		      j.nivel,
+		      j.jogador.pontuacao),
+	   0,
+	   16,
+	   32,
+	   WHITE
+	   );
+}
+
 int main () {
   InitWindow(LARGURA, ALTURA, "ZINF");
 
@@ -31,11 +51,14 @@ int main () {
     }
   };
 
+  Jogo jogo = { .jogador = jogador, .nivel = 0 };
+
   SetTargetFPS(30);
 
   while(!WindowShouldClose()) {
     BeginDrawing();
     ClearBackground(WHITE);
+    DesenharStatus(jogo);
 
     EndDrawing();
   }
