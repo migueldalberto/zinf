@@ -4,8 +4,17 @@
 
 #define LARGURA 1200
 #define ALTURA 800
+#define ESCALA 0.2
 
 typedef enum { NORTE, SUL, LESTE, OESTE} Orientacao;
+
+typedef struct {
+  Texture2D* textura;
+  Rectangle src;
+  Rectangle dst;
+  int frameAtual;
+  int numeroDeFrames;
+} Sprite;
 
 typedef struct {
   int vida;
@@ -13,7 +22,7 @@ typedef struct {
   Vector2 posicao;
   Orientacao orientacao;
   bool espada;
-  Texture2D texturas[4];
+  Sprite sprite;
 } Jogador;
 
 typedef struct {
@@ -21,6 +30,25 @@ typedef struct {
   int nivel;
 } Jogo;
 
+void DesenharSprite(Sprite s) {
+  DrawTexturePro(*s.textura, s.src, s.dst, (Vector2){ 0.0, 0.0 }, 0.0, WHITE);
+}
+
+void AtualizarSprite(Jogador* j) {
+  j->sprite.src = (Rectangle) {
+    j->sprite.frameAtual * (j->sprite.textura->width / j->sprite.numeroDeFrames),
+    j->orientacao * (j->sprite.textura->height / 4),
+    (j->sprite.textura->width / j->sprite.numeroDeFrames),
+    (j->sprite.textura->height / 4)
+  };
+
+  j->sprite.dst = (Rectangle){
+    j->posicao.x,
+    j->posicao.y,
+    (j->sprite.textura->width / j->sprite.numeroDeFrames) * ESCALA,
+    (j->sprite.textura->height / 4) * ESCALA
+  };
+}
 
 void DesenharStatus(Jogo j) {
   DrawRectangle(0, 0, LARGURA, 60, BLACK);
@@ -39,15 +67,18 @@ void DesenharStatus(Jogo j) {
 int main () {
   InitWindow(LARGURA, ALTURA, "ZINF");
 
+  Texture2D texturaDoJogador = LoadTexture("./assets/jogador.png");
+
   Jogador jogador = {
     .vida = 3,
     .pontuacao = 0,
     .posicao = (Vector2){ LARGURA / 2, ALTURA / 2},
     .orientacao = LESTE,
     .espada = false,
-    .texturas = {
-      LoadTexture("assets/jogador-norte.png"), LoadTexture("assets/jogador-sul.png"),
-      LoadTexture("assets/jogador-leste.png"), LoadTexture("assets/jogador-oeste.png"),
+    .sprite = {
+      .textura = &texturaDoJogador,
+      .numeroDeFrames = 1,
+      .frameAtual = 0
     }
   };
 
@@ -56,8 +87,11 @@ int main () {
   SetTargetFPS(30);
 
   while(!WindowShouldClose()) {
+    AtualizarSprite(&jogador);
+    
     BeginDrawing();
     ClearBackground(WHITE);
+    DesenharSprite(jogador.sprite);
     DesenharStatus(jogo);
 
     EndDrawing();
