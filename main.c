@@ -40,13 +40,13 @@ void AtualizarSprite(Jogador* j) {
   };
 }
 
-void DesenharStatus(Jogo j) {
+void DesenharStatus(int vida, int nivel, int pontuacao) {
   DrawRectangle(0, 0, LARGURA, 60, BLACK);
   DrawText(
 	   TextFormat("vida: %d \tnível: %d \tpontuação: %d",
-		      j.jogador.vida,
-		      j.nivel,
-		      j.jogador.pontuacao),
+		      vida,
+		      nivel,
+		      pontuacao),
 	   16,
 	   16,
 	   32,
@@ -82,7 +82,7 @@ int main () {
     BeginDrawing();
     ClearBackground(WHITE);
     DesenharSprite(jogador.sprite);
-    DesenharStatus(jogo);
+    DesenharStatus(jogador.vida, jogo.nivel, jogador.pontuacao);
 
     EndDrawing();
   }
