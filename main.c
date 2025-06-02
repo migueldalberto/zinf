@@ -2,19 +2,13 @@
 
 #include <stdbool.h>
 
+#include "sprite.h"
+
 #define LARGURA 1200
 #define ALTURA 800
 #define ESCALA 0.2
 
 typedef enum { NORTE, SUL, LESTE, OESTE} Orientacao;
-
-typedef struct {
-  Texture2D* textura;
-  Rectangle src;
-  Rectangle dst;
-  int frameAtual;
-  int numeroDeFrames;
-} Sprite;
 
 typedef struct {
   int vida;
@@ -29,10 +23,6 @@ typedef struct {
   Jogador jogador;
   int nivel;
 } Jogo;
-
-void DesenharSprite(Sprite s) {
-  DrawTexturePro(*s.textura, s.src, s.dst, (Vector2){ 0.0, 0.0 }, 0.0, WHITE);
-}
 
 void AtualizarSprite(Jogador* j) {
   j->sprite.src = (Rectangle) {

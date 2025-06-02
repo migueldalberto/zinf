@@ -1,6 +1,10 @@
 BIN := zinf
 CFLAGS := -Wall -Wextra
 LFLAGS := -lraylib
+OBJS := sprite.o
 
-all: main.c
-	cc $(CFLAGS) -o $(BIN) main.c $(LFLAGS)
+all: main.c $(OBJS)
+	cc $(CFLAGS) -o $(BIN) main.c $(OBJS) $(LFLAGS)
+
+%.o: %.c
+	cc $(CFLAGS) -c $^
