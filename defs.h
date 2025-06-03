@@ -3,6 +3,6 @@
 
 #define LARGURA 1200
 #define ALTURA 800
-#define ESCALA 5
+#define ESCALA 2
 
 #endif
