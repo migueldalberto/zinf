@@ -26,22 +26,6 @@ typedef struct {
   int nivel;
 } Jogo;
 
-void AtualizarSprite(Jogador* j) {
-  j->sprite.src = (Rectangle) {
-    j->sprite.frameAtual * (j->sprite.textura->width / j->sprite.numeroDeFrames),
-    j->orientacao * (j->sprite.textura->height / 4),
-    (j->sprite.textura->width / j->sprite.numeroDeFrames),
-    (j->sprite.textura->height / 4)
-  };
-
-  j->sprite.dst = (Rectangle){
-    j->posicao.x,
-    j->posicao.y,
-    (j->sprite.textura->width / j->sprite.numeroDeFrames) * ESCALA,
-    (j->sprite.textura->height / 4) * ESCALA
-  };
-}
-
 void DesenharStatus(int vida, int nivel, int pontuacao) {
   DrawRectangle(0, 0, LARGURA, 60, BLACK);
   DrawText(
