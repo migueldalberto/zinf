@@ -55,7 +55,9 @@ void DesenharStatus(int vida, int nivel, int pontuacao) {
 int main () {
   InitWindow(LARGURA, ALTURA, "ZINF");
 
-  Texture2D texturaDoJogador = LoadTexture("./assets/jogador.png");
+  Texture2D jogadorParado = LoadTexture("assets/jogador_parado.png");
+  Texture2D jogadorCaminha = LoadTexture("assets/jogador_caminha.png");
+  Texture2D jogadorAtaca = LoadTexture("assets/jogador_ataca.png");
 
   Jogador jogador = {
     .vida = 3,
@@ -63,11 +65,12 @@ int main () {
     .posicao = (Vector2){ LARGURA / 2, ALTURA / 2},
     .orientacao = LESTE,
     .espada = false,
-    .sprite = {
-      .textura = &texturaDoJogador,
-      .numeroDeFrames = 1,
-      .frameAtual = 0
-    }
+    .sprites = {
+      NovaSprite(&jogadorParado, 4),
+      NovaSprite(&jogadorCaminha, 4),
+      NovaSprite(&jogadorAtaca, 6),
+    },
+    .spriteAtual = PARADO
   };
 
   Jogo jogo = { .jogador = jogador, .nivel = 0 };
@@ -76,10 +79,11 @@ int main () {
 
   while(!WindowShouldClose()) {
     AtualizarSprite(&jogador);
+    AtualizarSprite(&jogador.sprites[jogador.spriteAtual], jogador.orientacao, jogador.posicao, ESCALA);
     
     BeginDrawing();
     ClearBackground(WHITE);
-    DesenharSprite(jogador.sprite);
+    DesenharSprite(jogador.sprites[jogador.spriteAtual]);
     DesenharStatus(jogador.vida, jogo.nivel, jogador.pontuacao);
 
     EndDrawing();
