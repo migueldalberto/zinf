@@ -2,11 +2,9 @@
 
 #include <stdbool.h>
 
+#include "defs.h"
 #include "sprite.h"
 
-#define LARGURA 1200
-#define ALTURA 800
-#define ESCALA 0.2
 
 typedef enum { NORTE, SUL, LESTE, OESTE} Orientacao;
 
