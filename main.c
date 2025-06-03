@@ -65,7 +65,19 @@ int main () {
 
   SetTargetFPS(30);
 
+  int contadorDeFrames = 0;
+  int velocidadeAnim = 5;
+
   while(!WindowShouldClose()) {
+    if (contadorDeFrames >= 30 / velocidadeAnim) {
+      contadorDeFrames = 0;
+
+      Sprite *s = &jogador.sprites[jogador.spriteAtual];
+      s->frameAtual++;
+      if (s->frameAtual >= s->numeroDeFrames)
+	  s->frameAtual = 0;
+    }
+    
     AtualizarSprite(&jogador.sprites[jogador.spriteAtual], jogador.orientacao, jogador.posicao, ESCALA);
     
     BeginDrawing();
@@ -74,6 +86,8 @@ int main () {
     DesenharStatus(jogador.vida, jogo.nivel, jogador.pontuacao);
 
     EndDrawing();
+
+    ++contadorDeFrames;
   }
 
   CloseWindow();
