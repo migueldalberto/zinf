@@ -5,8 +5,7 @@
 #include "defs.h"
 #include "sprite.h"
 
-
-typedef enum { NORTE, SUL, LESTE, OESTE} Orientacao;
+typedef enum { OESTE, LESTE, NORTE, SUL } Orientacao;
 
 typedef struct {
   int vida;
@@ -14,7 +13,12 @@ typedef struct {
   Vector2 posicao;
   Orientacao orientacao;
   bool espada;
-  Sprite sprite;
+  Sprite sprites[3];
+  enum {
+    PARADO = 0,
+    CAMINHANDO,
+    ATACANDO
+  } spriteAtual;
 } Jogador;
 
 typedef struct {
@@ -78,7 +82,6 @@ int main () {
   SetTargetFPS(30);
 
   while(!WindowShouldClose()) {
-    AtualizarSprite(&jogador);
     AtualizarSprite(&jogador.sprites[jogador.spriteAtual], jogador.orientacao, jogador.posicao, ESCALA);
     
     BeginDrawing();
