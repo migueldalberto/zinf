@@ -12,6 +12,10 @@ Trabalho de Miguel Braga Medeiros e Miguel Dalberto Pedro.
 ## Sobre os assets
 
 Os assets usados pelo jogo não estão nesse repositório, precisam ser
-colocados num diretório './assets'.
+colocados num diretório './assets' com os seguintes nomes:
 
-[Baixar sprites](https://drive.google.com/file/d/1hPVUwonPrfS3O0MjRALwXNezXy4GaE1d/view?usp=sharing)
+- `jogador_parado.png`
+- `jogador_caminha.png`
+- `jogador_ataca.png`
+- `slime_verde_anda.png`
+- `tileset.png`
