@@ -10,17 +10,18 @@ Sprite NovaSprite(Texture2D* t, int nDeFrames) {
   Sprite s = {
     .textura = t,
     .frameAtual = 0,
-    .numeroDeFrames = nDeFrames
+    .numeroDeFrames = nDeFrames,
   };
 
-  AtualizarSprite(&s, 0, (Vector2){ LARGURA / 2, ALTURA / 2}, ESCALA);
+  AtualizarSprite(&s, 0, (Vector2){ LARGURA / 2, ALTURA / 2});
 
   return s;
 }
 
-void AtualizarSprite(Sprite* s, int orientacao,  Vector2 novaPosicao, int escala) {
+void AtualizarSprite(Sprite* s, int orientacao, Vector2 novaPosicao) {
   int largura = s->textura->width / s->numeroDeFrames;
   int altura = s->textura->height / 4;
+  int escala = (32 * ESCALA) / largura;
   
   s->src = (Rectangle){
     s->frameAtual * largura,

@@ -27,7 +27,7 @@ typedef struct {
 } Jogo;
 
 void DesenharStatus(int vida, int nivel, int pontuacao) {
-  DrawRectangle(0, 0, LARGURA, 60, BLACK);
+  DrawRectangle(0, 0, LARGURA, ALTURA_STATUS, BLACK);
   DrawText(
 	   TextFormat("vida: %d \tnível: %d \tpontuação: %d",
 		      vida,
@@ -78,7 +78,7 @@ int main () {
 	  s->frameAtual = 0;
     }
     
-    AtualizarSprite(&jogador.sprites[jogador.spriteAtual], jogador.orientacao, jogador.posicao, ESCALA);
+    AtualizarSprite(&jogador.sprites[jogador.spriteAtual], jogador.orientacao, jogador.posicao);
     
     BeginDrawing();
     ClearBackground(WHITE);

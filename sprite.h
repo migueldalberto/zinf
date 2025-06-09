@@ -11,8 +11,8 @@ typedef struct {
   int numeroDeFrames;
 } Sprite;
 
-void DesenharSprite(Sprite);
 Sprite NovaSprite(Texture2D*, int nDeFrames);
-void AtualizarSprite(Sprite*, int orientacao,  Vector2 novaPosicao, int escala);
+void DesenharSprite(Sprite);
+void AtualizarSprite(Sprite*, int orientacao, Vector2 novaPosicao);
 
 #endif
