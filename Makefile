@@ -1,9 +1,9 @@
 BIN := zinf
 CFLAGS := -Wall -Wextra
 LFLAGS := -lraylib
-OBJS := sprite.o
+OBJS := sprite.o mapa.o
 
-all: main.c $(OBJS)
+all: main.c $(OBJS) defs.h
 	cc $(CFLAGS) -o $(BIN) main.c $(OBJS) $(LFLAGS)
 
 %.o: %.c
