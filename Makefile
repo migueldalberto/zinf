@@ -6,5 +6,5 @@ OBJS := sprite.o mapa.o
 all: main.c $(OBJS) defs.h
 	cc $(CFLAGS) -o $(BIN) main.c $(OBJS) $(LFLAGS)
 
-%.o: %.c
-	cc $(CFLAGS) -c $^
+%.o: %.c defs.h
+	cc $(CFLAGS) -c $<
