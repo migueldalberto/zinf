@@ -1,0 +1,22 @@
+#ifndef MAPA_H
+#define MAPA_H
+
+#include <raylib.h>
+#include <stdlib.h>
+
+typedef struct {
+  enum {
+    GRAMA,
+    PEDRA
+  } tiles[16][24];
+  Rectangle sources[16][24];
+  Vector2 posicaoJogador;
+  Vector2 posicaoMonstros[10];
+  int nDeMonstros;
+  Texture2D textura;
+} Mapa;
+
+void MapaGerarRetangulos(Mapa*);
+void DesenharMapa(Mapa);
+
+#endif
