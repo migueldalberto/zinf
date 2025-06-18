@@ -102,6 +102,7 @@ int main () {
     LerControles(&jogador);
     jogador.posicao = Vector2Add(jogador.posicao, jogador.deslocamento);
     AtualizarHitbox(&jogador);
+    AtualizarEfeitos(&jogador);
     if (ForaDoMapa(jogador))
       ReverterMovimento(&jogador);
 
@@ -110,8 +111,13 @@ int main () {
       if (ForaDoMapa(monstros[i]))
 	ReverterMovimento(&monstros[i]);
 
-      if (ChecarColisao(monstros[i], jogador)) {
-	//	jogador.efeitos |= DANO;
+      AtualizarEfeitos(&monstros[i]);
+
+      if (ChecarColisao(monstros[i], jogador) && !(jogador.efeitos & DANO)) {
+	jogador.efeitos |= DANO;
+	jogador.posicao = Vector2Add(jogador.posicao, Vector2Scale(monstros[i].deslocamento, 2));
+	jogador.vida -= 1;
+	AtualizarHitbox(&jogador);
       }
     }
     

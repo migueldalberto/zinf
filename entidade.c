@@ -3,6 +3,19 @@
 #include "defs.h"
 #include <raymath.h>
 
+void AtualizarEfeitos(Entidade* e) {
+  for (int i = 0; i < 16; ++i) {
+    if (e->efeitos & 1<<i) {
+      ++e->timerDeEfeitos[i];
+
+      if(e->timerDeEfeitos[i] >= 15) {
+	e->timerDeEfeitos[i] = 0;
+	e->efeitos -= 1<<i;
+      }
+    }
+  }
+}
+
 bool ChecarColisao(Entidade a, Entidade b) {
   return CheckCollisionRecs(a.hitbox, b.hitbox);
 }
@@ -77,7 +90,8 @@ void InicializarEntidade(Entidade* e, EntidadeTipo t, Texture2D* texturas, Vecto
 	NovaSprite(&texturas[1], 8),
 	NovaSprite(&texturas[2], 6),
       },
-      .spriteAtual = PARADO
+      .spriteAtual = PARADO,
+      .timerDeEfeitos = {0}
     };
     break;
   case SLIME_VERDE:
@@ -96,7 +110,8 @@ void InicializarEntidade(Entidade* e, EntidadeTipo t, Texture2D* texturas, Vecto
       .hitboxOffset = {
 	4 * ESCALA,
 	10 * ESCALA
-      }
+      },
+      .timerDeEfeitos = {0}
     };
     break;
   }

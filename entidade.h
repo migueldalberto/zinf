@@ -33,8 +33,10 @@ typedef struct {
     ATACANDO
   } spriteAtual;
   int efeitos;
+  int timerDeEfeitos[16];
 } Entidade;
 
+void AtualizarEfeitos(Entidade*);
 bool ChecarColisao(Entidade, Entidade);
 void JogadorMove(Entidade*);
 void SlimeMove(Entidade*);
