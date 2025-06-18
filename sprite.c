@@ -6,6 +6,10 @@ void DesenharSprite(Sprite s) {
   DrawTexturePro(*s.textura, s.src, s.dst, (Vector2){ 0.0, 0.0 }, 0.0, WHITE);
 }
 
+void DesenharSpriteEx(Sprite s, Color tint) {
+  DrawTexturePro(*s.textura, s.src, s.dst, (Vector2){ 0.0, 0.0 }, 0.0, tint);
+}
+
 Sprite NovaSprite(Texture2D* t, int nDeFrames) {
   Sprite s = {
     .textura = t,
