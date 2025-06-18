@@ -8,33 +8,7 @@
 #include "defs.h"
 #include "sprite.h"
 #include "mapa.h"
-
-typedef enum { OESTE, LESTE, NORTE, SUL } Orientacao;
-
-typedef struct {
-  int vida;
-  int pontuacao;
-  Vector2 posicao;
-  Vector2 deslocamento;
-  Rectangle hitbox;
-  Orientacao orientacao;
-  bool espada;
-  Sprite sprites[3];
-  enum {
-    PARADO = 0,
-    CAMINHANDO,
-    ATACANDO
-  } spriteAtual;
-} Jogador;
-
-typedef struct {
-  Sprite sprite;
-  int vida;
-  int pontuacao;
-  Vector2 posicao;
-  Vector2 deslocamento;
-  Orientacao orientacao;
-} Monstro;
+#include "entidade.h"
 
 void DesenharStatus(int vida, int nivel, int pontuacao) {
   DrawRectangle(0, 0, LARGURA, ALTURA_STATUS, BLACK);
@@ -69,30 +43,7 @@ void IniciarMapaTeste(Mapa* m) {
   }
 }
 
-void MonstroMove(Monstro* m) {
-  if (m->sprite.frameAtual == 4) {
-    int v = VEL_JOGADOR + 4;
-    int dx = 0;
-    int dy = 0;
-
-    switch(m->orientacao) {
-    case NORTE: dy = v; break;
-    case SUL: dy = -v; break;
-    case LESTE: dx = v; break;
-    case OESTE: dx = -v; break;
-    }
-
-    m->deslocamento.x = dx;
-    m->deslocamento.y = dy;
-  } else {
-    m->deslocamento.x = 0;
-    m->deslocamento.y = 0;
-  }
-
-  m->posicao = Vector2Add(m->posicao, m->deslocamento);
-}
-
-void LerControles (Jogador* jogador) {
+void LerControles (Entidade* jogador) {
   bool n,s,l,o;
   n = IsKeyDown(KEY_W);
   s = IsKeyDown(KEY_S);
@@ -127,46 +78,21 @@ int main () {
 
   IniciarMapaTeste(&mapa);
 
-  Texture2D jogadorParado = LoadTexture("assets/jogador_parado.png");
-  Texture2D jogadorCaminha = LoadTexture("assets/jogador_caminha.png");
-  Texture2D jogadorAtaca = LoadTexture("assets/jogador_ataca.png");
-
-  Texture2D texturaMonstro = LoadTexture("assets/slime_verde_anda.png");
-
-  Jogador jogador = {
-    .vida = 3,
-    .pontuacao = 0,
-    .posicao = mapa.posicaoJogador,
-    .deslocamento = {0},
-    .orientacao = LESTE,
-    .espada = false,
-    .hitbox = {
-      .x = mapa.posicaoJogador.x,
-      .y = mapa.posicaoJogador.y + 12,
-      .width = 12,
-      .height = 20
-    },
-    .sprites = {
-      NovaSprite(&jogadorParado, 4),
-      NovaSprite(&jogadorCaminha, 8),
-      NovaSprite(&jogadorAtaca, 6),
-    },
-    .spriteAtual = PARADO
+  Texture2D jogadorTexturas[3] = {
+    LoadTexture("assets/jogador_parado.png"),
+    LoadTexture("assets/jogador_caminha.png"),
+    LoadTexture("assets/jogador_ataca.png")
   };
 
-  Monstro monstros[mapa.nDeMonstros];
+  Texture2D texturaSlimeVerde = LoadTexture("assets/slime_verde_anda.png");
 
-  for (int i = 0; i < mapa.nDeMonstros; ++i) {
-    monstros[i] = (Monstro){
-      .vida = 2,
-      .pontuacao = 5,
-      .sprite = NovaSprite(&texturaMonstro, 5),
-      .posicao = mapa.posicaoMonstros[i],
-      .deslocamento = {0},
-      .orientacao = rand() % 4
-    };
-  }
-  
+  Entidade jogador;
+  InicializarEntidade(&jogador, JOGADOR, jogadorTexturas, mapa.posicaoJogador);
+
+  Entidade monstros[mapa.nDeMonstros];
+  for (int i = 0; i < mapa.nDeMonstros; ++i)
+    InicializarEntidade(&monstros[i], SLIME_VERDE, &texturaSlimeVerde, mapa.posicaoMonstros[i]);
+
   SetTargetFPS(30);
 
   int contadorDeFrames = 0;
@@ -175,9 +101,18 @@ int main () {
   while(!WindowShouldClose()) {
     LerControles(&jogador);
     jogador.posicao = Vector2Add(jogador.posicao, jogador.deslocamento);
+    AtualizarHitbox(&jogador);
+    if (ForaDoMapa(jogador))
+      ReverterMovimento(&jogador);
 
     for (int i = 0; i < mapa.nDeMonstros; ++i) {
-      MonstroMove(&monstros[i]);
+      SlimeMove(&monstros[i]);
+      if (ForaDoMapa(monstros[i]))
+	ReverterMovimento(&monstros[i]);
+
+      if (ChecarColisao(monstros[i], jogador)) {
+	//	jogador.efeitos |= DANO;
+      }
     }
     
     if (contadorDeFrames >= 30 / velocidadeAnim) {
@@ -193,20 +128,17 @@ int main () {
     }
     
     AtualizarSprite(&jogador.sprites[jogador.spriteAtual], jogador.orientacao, jogador.posicao);
-    for (int i = 0; i < mapa.nDeMonstros; ++i) {
-      AtualizarSprite(&monstros[i].sprite, monstros[i].orientacao, monstros[i].posicao);
-    }
+    for (int i = 0; i < mapa.nDeMonstros; ++i)
+      AtualizarSprite(monstros[i].sprites, monstros[i].orientacao, monstros[i].posicao);
     
     BeginDrawing();
     ClearBackground(WHITE);
     DesenharMapa(mapa);
-    DesenharSprite(jogador.sprites[jogador.spriteAtual]);
-    for (int i = 0; i < mapa.nDeMonstros; ++i) {
-      DesenharSprite(monstros[i].sprite);
-    }
+    DesenharEntidade(jogador);
+    for (int i = 0; i < mapa.nDeMonstros; ++i)
+      DesenharEntidade(monstros[i]);
     
     DesenharStatus(jogador.vida, nivel, jogador.pontuacao);
-
     EndDrawing();
 
     ++contadorDeFrames;
