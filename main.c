@@ -9,8 +9,6 @@
 #include "sprite.h"
 #include "mapa.h"
 
-#define VEL_JOGADOR 4
-
 typedef enum { OESTE, LESTE, NORTE, SUL } Orientacao;
 
 typedef struct {
