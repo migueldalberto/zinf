@@ -39,7 +39,7 @@ void IniciarMapaTeste(Mapa* m) {
 
   for (int i = 0; i < m->nDeMonstros; ++i) {
     m->posicaoMonstros[i].x = (rand() % 24) * 32;
-    m->posicaoMonstros[i].y = (rand() % 16) * 32;
+    m->posicaoMonstros[i].y = ((rand() % 16) * 32) + ALTURA_STATUS;
   }
 }
 
