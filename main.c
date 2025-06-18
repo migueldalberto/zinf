@@ -184,15 +184,11 @@ int main () {
       contadorDeFrames = 0;
 
       Sprite *s = &jogador.sprites[jogador.spriteAtual];
-      s->frameAtual++;
-      if (s->frameAtual >= s->numeroDeFrames)
-	  s->frameAtual = 0;
+      ProximoFrame(s);
       
       for (int i = 0; i < mapa.nDeMonstros; ++i) {
-	Sprite *sm = &monstros[i].sprite;
-	sm->frameAtual++;
-	if (sm->frameAtual >= sm->numeroDeFrames)
-	  sm->frameAtual = 0;
+	Sprite *sm = monstros[i].sprites;
+	ProximoFrame(sm);
       }
     }
     

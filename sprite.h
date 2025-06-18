@@ -14,5 +14,6 @@ typedef struct {
 Sprite NovaSprite(Texture2D*, int nDeFrames);
 void DesenharSprite(Sprite);
 void AtualizarSprite(Sprite*, int orientacao, Vector2 novaPosicao);
+void ProximoFrame(Sprite*);
 
 #endif

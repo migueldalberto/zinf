@@ -37,3 +37,9 @@ void AtualizarSprite(Sprite* s, int orientacao, Vector2 novaPosicao) {
     altura * escala
   };
 }
+
+void ProximoFrame(Sprite* s) {
+  s->frameAtual++;
+  if (s->frameAtual >= s->numeroDeFrames)
+    s->frameAtual = 0;
+}
