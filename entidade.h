@@ -12,6 +12,7 @@ typedef enum {
 
 typedef enum {
   DANO = 1,
+  ATAQUE = 1<<1,
 } Efeitos;
 
 typedef enum { OESTE, LESTE, NORTE, SUL } Orientacao;

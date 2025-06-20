@@ -14,7 +14,7 @@ Sprite NovaSprite(Texture2D* t, int nDeFrames) {
   Sprite s = {
     .textura = t,
     .frameAtual = 0,
-    .numeroDeFrames = nDeFrames,
+    .numeroDeFrames = nDeFrames
   };
 
   AtualizarSprite(&s, 0, (Vector2){ LARGURA / 2, ALTURA / 2});

@@ -8,7 +8,13 @@ void AtualizarEfeitos(Entidade* e) {
     if (e->efeitos & 1<<i) {
       ++e->timerDeEfeitos[i];
 
-      if(e->timerDeEfeitos[i] >= 15) {
+      int timeout;
+      switch (1<<i) {
+      case DANO: timeout = 15; break;
+      case ATAQUE: timeout = 15; break;
+      }
+      
+      if(e->timerDeEfeitos[i] >= timeout) {
 	e->timerDeEfeitos[i] = 0;
 	e->efeitos -= 1<<i;
       }
@@ -88,7 +94,7 @@ void InicializarEntidade(Entidade* e, EntidadeTipo t, Texture2D* texturas, Vecto
       .sprites = {
 	NovaSprite(&texturas[0], 4),
 	NovaSprite(&texturas[1], 8),
-	NovaSprite(&texturas[2], 6),
+	NovaSprite(&texturas[2], 3),
       },
       .spriteAtual = PARADO,
       .timerDeEfeitos = {0}
@@ -121,6 +127,20 @@ void DesenharEntidade(Entidade e) {
   Color tint = (e.efeitos & DANO) ? RED : WHITE;
   switch (e.tipo) {
   case JOGADOR:
+    // gambiarra pra sprite de ataque funcionar
+    if (e.efeitos & ATAQUE) {
+      Sprite* s = &e.sprites[e.spriteAtual];
+      int largura = s->textura->width / s->numeroDeFrames;
+      int altura = s->textura->height / 4;
+      int escala = (32 * ESCALA) / largura ;
+
+      s->dst = (Rectangle){
+	e.posicao.x - largura / 2,
+	e.posicao.y - altura / 2,
+	largura * escala * 3,
+	altura * escala * 3
+      };
+    }
     DesenharSpriteEx(e.sprites[e.spriteAtual], tint);
     break;
   case SLIME_VERDE:
