@@ -48,5 +48,6 @@ void AtualizarHitbox (Entidade*);
 bool ForaDoMapa(Entidade);
 bool DentroDePedra(Entidade, Mapa);
 void ReverterMovimento(Entidade* e);
+void SlimeOrientacao(Entidade *, Rectangle hitboxJogador);
 
 #endif

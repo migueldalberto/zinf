@@ -2,6 +2,7 @@
 
 #include "defs.h"
 #include <raymath.h>
+#include <math.h>
 
 void AtualizarEfeitos(Entidade* e) {
   for (int i = 0; i < 16; ++i) {
@@ -31,6 +32,13 @@ bool ForaDoMapa(Entidade e) {
     (e.hitbox.height + e.hitbox.y) > ALTURA ||
     e.hitbox.x < 0 ||
     e.hitbox.y < ALTURA_STATUS;
+}
+
+bool ForaDoMapaRet(Rectangle h) {
+    return (h.width + h.x) > LARGURA ||
+    (h.height + h.y) > ALTURA ||
+    h.x < 0 ||
+    h.y < ALTURA_STATUS;
 }
 
 bool DentroDePedra(Entidade e, Mapa m) {
@@ -81,6 +89,41 @@ void SlimeMove(Entidade* m) {
 
   m->posicao = Vector2Add(m->posicao, m->deslocamento);
   AtualizarHitbox(m);
+}
+
+void SlimeOrientacao(Entidade *s, Rectangle hitboxJogador) {
+  Rectangle scan = {
+    .x = s->hitbox.x - (4 * s->hitbox.width),
+    .y = s->hitbox.y - (4 * s->hitbox.height),
+    .width = s->hitbox.width * 9,
+    .height = s->hitbox.height * 9
+  };
+
+  if (CheckCollisionRecs(scan, hitboxJogador)) {
+    float dy = hitboxJogador.y - s->hitbox.y;
+    float dx = hitboxJogador.x - s->hitbox.x;
+
+    if (abs((int) dy) > abs((int) dx)) {
+      s->orientacao = dy > 0 ? NORTE : SUL;
+    } else {
+      s->orientacao = dx > 0 ? LESTE : OESTE;
+    }
+  } else if (ForaDoMapaRet(scan)) {
+    float dcima = s->hitbox.y;
+    float dbaixo = ALTURA - s->hitbox.y;
+    float desq = s->hitbox.x;
+    float ddir = LARGURA - s->hitbox.x;
+
+    if (dcima < dbaixo && dcima < desq && dcima < ddir)
+      s->orientacao = NORTE;
+    else if (dbaixo < dcima && dbaixo < desq && dbaixo < ddir)
+      s->orientacao = SUL;
+    else if (desq < dcima && desq < dbaixo && desq < ddir)
+      s->orientacao = LESTE;
+    else
+      s->orientacao = OESTE;
+
+  }
 }
 
 void AtualizarHitbox (Entidade *e) {

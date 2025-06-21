@@ -91,6 +91,7 @@ int main () {
       ReverterMovimento(&jogador);
 
     for (int i = 0; i < mapa.nDeMonstros; ++i) {
+      SlimeOrientacao(&monstros[i], jogador.hitbox);
       SlimeMove(&monstros[i]);
       if (ForaDoMapa(monstros[i]) || DentroDePedra(monstros[i], mapa))
 	ReverterMovimento(&monstros[i]);

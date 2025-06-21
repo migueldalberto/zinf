@@ -1,6 +1,6 @@
 BIN := zinf
 CFLAGS := -Wall -Wextra
-LFLAGS := -lraylib
+LFLAGS := -lraylib -lm
 OBJS := sprite.o mapa.o entidade.o controles.o
 
 all: main.c $(OBJS) defs.h
