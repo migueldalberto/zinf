@@ -12,10 +12,13 @@ typedef struct {
   Rectangle sources[16][24];
   Vector2 posicaoJogador;
   Vector2 posicaoMonstros[10];
+  Vector2 posicaoEspada;
+  Vector2 posicaoVidas[5];
   int nDeMonstros;
   Texture2D textura;
 } Mapa;
 
+int SalvarMapa(Mapa, char*);
 void MapaGerarRetangulos(Mapa*);
 void DesenharMapa(Mapa);
 
