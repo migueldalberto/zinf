@@ -7,6 +7,13 @@ void MapaGerarRetangulos(Mapa* m) {
       int r = rand();
       switch(m->tiles[i][j]) {
       case PEDRA:
+	m->sources[i][j] = (Rectangle) {
+	  .x = (r % 2) * 32,
+	  .y = 32,
+	  .width = 32,
+	  .height = 32
+	};
+	break;
       case GRAMA:
       default:
 	m->sources[i][j] = (Rectangle){

@@ -33,6 +33,23 @@ bool ForaDoMapa(Entidade e) {
     e.hitbox.y < ALTURA_STATUS;
 }
 
+bool DentroDePedra(Entidade e, Mapa m) {
+  for (int i = 0; i < 16; ++i) {
+    for (int j = 0; j < 24; ++j) {
+      if (m.tiles[i][j] == PEDRA) {
+	Rectangle p = (Rectangle){
+	  .x = j * 32 * ESCALA,
+	  .y = i * 32 * ESCALA + ALTURA_STATUS,
+	  32 * ESCALA, 32 * ESCALA
+	};
+	if (CheckCollisionRecs(p, e.hitbox))
+	  return true;
+      }
+    }
+  }
+  return false;
+}
+
 void DesenharHitbox(Rectangle h) {
   DrawRectangleLinesEx(h, 5.0, RED);
 }

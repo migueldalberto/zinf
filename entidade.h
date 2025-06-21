@@ -46,6 +46,7 @@ void DesenharEntidade(Entidade);
 Sprite* SpriteAtual(Entidade);
 void AtualizarHitbox (Entidade*);
 bool ForaDoMapa(Entidade);
+bool DentroDePedra(Entidade, Mapa);
 void ReverterMovimento(Entidade* e);
 
 #endif

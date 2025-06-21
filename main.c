@@ -30,6 +30,14 @@ void IniciarMapaTeste(Mapa* m) {
     for (int j = 0; j < 24; ++j)
       m->tiles[i][j] = GRAMA;
 
+  int i = 4;
+  for (int j = 8; j < 18; ++j) 
+    m->tiles[i][j] = PEDRA;
+
+   i = 12;
+  for (int j = 8; j < 18; ++j) 
+    m->tiles[i][j] = PEDRA;
+
   MapaGerarRetangulos(m);
 
   m->textura = LoadTexture("assets/tileset.png");
@@ -79,12 +87,12 @@ int main () {
     jogador.posicao = Vector2Add(jogador.posicao, jogador.deslocamento);
     AtualizarHitbox(&jogador);
     AtualizarEfeitos(&jogador);
-    if (ForaDoMapa(jogador))
+    if (ForaDoMapa(jogador) || DentroDePedra(jogador, mapa))
       ReverterMovimento(&jogador);
 
     for (int i = 0; i < mapa.nDeMonstros; ++i) {
       SlimeMove(&monstros[i]);
-      if (ForaDoMapa(monstros[i]))
+      if (ForaDoMapa(monstros[i]) || DentroDePedra(monstros[i], mapa))
 	ReverterMovimento(&monstros[i]);
 
       AtualizarEfeitos(&monstros[i]);
