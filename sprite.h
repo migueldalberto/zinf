@@ -16,5 +16,6 @@ void DesenharSprite(Sprite);
 void DesenharSpriteEx(Sprite, Color tint);
 void AtualizarSprite(Sprite*, int orientacao, Vector2 novaPosicao);
 void ProximoFrame(Sprite*);
+void AtualizarSpriteSrcFrame(Sprite*);
 
 #endif

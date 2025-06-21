@@ -42,6 +42,10 @@ void AtualizarSprite(Sprite* s, int orientacao, Vector2 novaPosicao) {
   };
 }
 
+void AtualizarSpriteSrcFrame(Sprite* s) {
+  s->src.x = s->frameAtual * (s->textura->width / s->numeroDeFrames);
+}
+
 void ProximoFrame(Sprite* s) {
   s->frameAtual++;
   if (s->frameAtual >= s->numeroDeFrames)

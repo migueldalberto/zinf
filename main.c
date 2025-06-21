@@ -85,7 +85,6 @@ int main () {
   srand(time(NULL));
 
   Mapa mapa;
-
   IniciarMapaTeste(&mapa);
 
   Texture2D jogadorTexturas[3] = {
@@ -93,12 +92,11 @@ int main () {
     LoadTexture("assets/jogador_caminha.png"),
     LoadTexture("assets/jogador_ataca.png")
   };
-
   Texture2D texturaSlimeVerde = LoadTexture("assets/slime_verde_anda.png");
+  Texture2D texturaSlimeVerdeMorre = LoadTexture("assets/slime_verde_morre.png");
 
   Entidade jogador;
   InicializarEntidade(&jogador, JOGADOR, jogadorTexturas, mapa.posicaoJogador);
-
   Entidade monstros[mapa.nDeMonstros];
   for (int i = 0; i < mapa.nDeMonstros; ++i)
     InicializarEntidade(&monstros[i], SLIME_VERDE, &texturaSlimeVerde, mapa.posicaoMonstros[i]);
@@ -110,6 +108,8 @@ int main () {
  
   Cena cenaDoJogo = MENU_PRINCIPAL;
 
+  Sprite animacoesDeMorte[10];
+  int nDeAnimacoesDeMorte = 0;
 
   while(!WindowShouldClose()) {
     if (cenaDoJogo == MENU_PRINCIPAL) {
@@ -137,6 +137,18 @@ int main () {
 	ReverterMovimento(&jogador);
 
       for (int i = 0; i < mapa.nDeMonstros; ++i) {
+	if (monstros[i].vida == 0) {
+	  jogador.pontuacao += monstros[i].pontuacao;
+	  animacoesDeMorte[nDeAnimacoesDeMorte] = NovaSprite(&texturaSlimeVerdeMorre, 5);
+	  AtualizarSprite(&animacoesDeMorte[nDeAnimacoesDeMorte], 0, monstros[i].posicao);
+	  ++nDeAnimacoesDeMorte;
+
+	  for (int j = i; j < mapa.nDeMonstros - 1; ++j) {
+	    monstros[j] = monstros[j + 1];
+	  }
+	  mapa.nDeMonstros--;
+	}
+	
 	SlimeOrientacao(&monstros[i], jogador.hitbox);
 	SlimeMove(&monstros[i]);
 	if (ForaDoMapa(monstros[i]) || DentroDePedra(monstros[i], mapa))
@@ -161,6 +173,17 @@ int main () {
 
 	Sprite *s = &jogador.sprites[jogador.spriteAtual];
 	ProximoFrame(s);
+
+	for(int i = 0; i < nDeAnimacoesDeMorte; ++i) {
+	  ProximoFrame(&animacoesDeMorte[i]);
+	  AtualizarSpriteSrcFrame(&animacoesDeMorte[i]);
+	  if (animacoesDeMorte[i].frameAtual == 4) {
+	    for (int j = 0; j < nDeAnimacoesDeMorte - 1; ++j) {
+	      animacoesDeMorte[j] = animacoesDeMorte[j + 1];
+	    }
+	    nDeAnimacoesDeMorte--;
+	  }
+	}
       
 	for (int i = 0; i < mapa.nDeMonstros; ++i) {
 	  Sprite *sm = monstros[i].sprites;
@@ -176,8 +199,12 @@ int main () {
       ClearBackground(WHITE);
       DesenharMapa(mapa);
       DesenharEntidade(jogador);
+
       for (int i = 0; i < mapa.nDeMonstros; ++i)
 	DesenharEntidade(monstros[i]);
+
+      for (int i = 0; i < nDeAnimacoesDeMorte; ++i)
+	DesenharSprite(animacoesDeMorte[i]);
     
       DesenharStatus(jogador.vida, nivel, jogador.pontuacao);
       EndDrawing();
