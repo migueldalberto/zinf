@@ -116,10 +116,17 @@ int main () {
       MenuPrincipal(&cenaDoJogo);
     } else if (cenaDoJogo == FIM_DE_JOGO) {
       BeginDrawing();
-      ClearBackground(GRAY);
-      DrawText("ZINF", LARGURA / 3, 32, 96, WHITE);
-      DesenharBotao(botaoJogar);
-      DesenharBotao(botaoRanking);
+      ClearBackground(WHITE);
+      DesenharMapa(mapa);
+      for (int i = 0; i < mapa.nDeMonstros; ++i)
+	DesenharEntidade(monstros[i]);
+      DesenharStatus(jogador.vida, nivel, jogador.pontuacao);
+      DrawRectangle(0, 0, LARGURA, ALTURA, Fade(BLACK, 0.8));
+      DrawText("Você morreu", LARGURA / 4, 96, 96, RED);
+      Botao bMenuPrincipal = NovoBotao("Menu Principal", LARGURA / 4, ALTURA / 2 + 100, DARKBLUE, WHITE);
+      Botao bSalvarPontuacao = NovoBotao("Salvar pontuação", LARGURA / 4, ALTURA / 2, YELLOW, WHITE);
+      DesenharBotao(bMenuPrincipal);
+      DesenharBotao(bSalvarPontuacao);
       EndDrawing();
     } else {
       LerControles(&jogador, monstros, mapa.nDeMonstros);
@@ -144,7 +151,11 @@ int main () {
 	  AtualizarHitbox(&jogador);
 	}
       }
-    
+      
+      if (jogador.vida == 0) {
+	cenaDoJogo = FIM_DE_JOGO;
+      }
+
       if (contadorDeFrames >= 30 / velocidadeAnim) {
 	contadorDeFrames = 0;
 
