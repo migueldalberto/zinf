@@ -12,6 +12,12 @@
 #include "controles.h"
 #include "menu.h"
 
+typedef enum {
+    MENU_PRINCIPAL,
+    JOGANDO,
+    FIM_DE_JOGO
+} Cena;
+
 void DesenharStatus(int vida, int nivel, int pontuacao) {
   DrawRectangle(0, 0, LARGURA, ALTURA_STATUS, BLACK);
   DrawText(
@@ -52,6 +58,25 @@ void IniciarMapaTeste(Mapa* m) {
   }
 }
 
+void MenuPrincipal(Cena* cenaDoJogo) {
+  Botao botaoJogar = NovoBotao("Jogar", LARGURA / 3, ALTURA / 2, DARKBLUE, WHITE);
+  Botao botaoRanking = NovoBotao("Ranking", LARGURA / 3, ALTURA / 2 + 100, DARKBLUE, WHITE);
+    
+  if (IsMouseButtonPressed(0)) {
+    Vector2 click = GetMousePosition();
+    if (CheckCollisionPointRec(click, botaoJogar.ret)) {
+      *cenaDoJogo = JOGANDO;
+    } else if (CheckCollisionPointRec(click, botaoRanking.ret)) ;
+  }
+
+  BeginDrawing();
+  ClearBackground(GRAY);
+  DrawText("ZINF", LARGURA / 3, 32, 96, WHITE);
+  DesenharBotao(botaoJogar);
+  DesenharBotao(botaoRanking);
+  EndDrawing();
+}
+
 int main () {
   int nivel = 0;
   
@@ -82,32 +107,20 @@ int main () {
 
   int contadorDeFrames = 0;
   int velocidadeAnim = 5;
+ 
+  Cena cenaDoJogo = MENU_PRINCIPAL;
 
-  enum {
-    MENU_PRINCIPAL,
-    JOGANDO,
-    FIM_DE_JOGO
-  } cenaDoJogo = MENU_PRINCIPAL;
 
   while(!WindowShouldClose()) {
-    Botao botaoJogar = NovoBotao("Jogar", LARGURA / 3, ALTURA / 2, DARKBLUE, WHITE);
-    Botao botaoRanking = NovoBotao("Ranking", LARGURA / 3, ALTURA / 2 + 100, DARKBLUE, WHITE);
-    
     if (cenaDoJogo == MENU_PRINCIPAL) {
-      if (IsMouseButtonPressed(0)) {
-	Vector2 click = GetMousePosition();
-	if (CheckCollisionPointRec(click, botaoJogar.ret)) {
-	  cenaDoJogo = JOGANDO;
-	} else if (CheckCollisionPointRec(click, botaoRanking.ret)) ;
-      }
-
+      MenuPrincipal(&cenaDoJogo);
+    } else if (cenaDoJogo == FIM_DE_JOGO) {
       BeginDrawing();
       ClearBackground(GRAY);
       DrawText("ZINF", LARGURA / 3, 32, 96, WHITE);
       DesenharBotao(botaoJogar);
       DesenharBotao(botaoRanking);
       EndDrawing();
-    } else if (cenaDoJogo == FIM_DE_JOGO) {
     } else {
       LerControles(&jogador, monstros, mapa.nDeMonstros);
       jogador.posicao = Vector2Add(jogador.posicao, jogador.deslocamento);
