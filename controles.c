@@ -2,6 +2,38 @@
 
 #include "defs.h"
 
+Rectangle GerarHitscan(Entidade* jogador) {
+  Rectangle hitscan = {
+    jogador->hitbox.x, jogador->hitbox.y,
+    jogador->hitbox.height * 2, jogador->hitbox.height * 2,
+  };
+
+  switch (jogador->orientacao) {
+  case NORTE:
+    hitscan.height /= 2;
+    hitscan.y = jogador->hitbox.y - hitscan.height;
+    hitscan.x = jogador->hitbox.x - (hitscan.width - jogador->hitbox.width) / 2;
+    break;
+  case SUL:
+    hitscan.height /= 2;
+    hitscan.y = jogador->hitbox.y + jogador->hitbox.height;
+    hitscan.x = jogador->hitbox.x - (hitscan.width - jogador->hitbox.width) / 2;
+    break;
+  case LESTE:
+    hitscan.width /= 2;
+    hitscan.x = jogador->hitbox.x + jogador->hitbox.width;
+    hitscan.y = jogador->hitbox.y - (hitscan.height - jogador->hitbox.height) / 2;
+    break;
+  case OESTE:
+    hitscan.width /= 2;
+    hitscan.x = jogador->hitbox.x - hitscan.width;
+    hitscan.y = jogador->hitbox.y - (hitscan.height - jogador->hitbox.height) / 2;
+    break;
+  }
+
+  return hitscan;
+}
+
 void LerControles (Entidade* jogador, Entidade* monstros, int nDeMonstros) {
   bool n,s,l,o;
   n = IsKeyDown(KEY_W);
@@ -33,23 +65,7 @@ void LerControles (Entidade* jogador, Entidade* monstros, int nDeMonstros) {
   if (IsKeyPressed(KEY_T) && !(jogador->efeitos & ATAQUE)) {
     jogador->efeitos = ATAQUE;
     jogador->spriteAtual = ATACANDO;
-    Rectangle hitscan = {
-      jogador->hitbox.x, jogador->hitbox.y,
-      jogador->hitbox.height, jogador->hitbox.height
-    };
-
-    switch (jogador->orientacao) {
-    case NORTE:
-      hitscan.y -= jogador->hitbox.height;
-      break;
-    case SUL:
-      hitscan.y += jogador->hitbox.height;
-      break;
-    case LESTE: hitscan.x += jogador->hitbox.width;
-      break;
-    case OESTE: hitscan.x -= jogador->hitbox.width;
-      break;
-    }
+    Rectangle hitscan = GerarHitscan(jogador);
 
     for (int i = 0; i < nDeMonstros; ++i) {
       if (CheckCollisionRecs(monstros[i].hitbox, hitscan)) {
@@ -60,3 +76,6 @@ void LerControles (Entidade* jogador, Entidade* monstros, int nDeMonstros) {
   }
 }
 
+void DesenharHitscan(Entidade* jogador) {
+  DrawRectangleRec(GerarHitscan(jogador), Fade(RED, 0.5));
+}

@@ -207,6 +207,7 @@ int main () {
 	DesenharSprite(animacoesDeMorte[i]);
     
       DesenharStatus(jogador.vida, nivel, jogador.pontuacao);
+      // DesenharHitscan(&jogador);
       EndDrawing();
 
       ++contadorDeFrames;
