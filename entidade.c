@@ -87,6 +87,11 @@ void SlimeMove(Entidade* m) {
     m->deslocamento.y = 0;
   }
 
+  if (m->efeitos & DANO) {
+    m->deslocamento.x = - m->deslocamento.x;
+    m->deslocamento.y = - m->deslocamento.y;
+  }
+
   m->posicao = Vector2Add(m->posicao, m->deslocamento);
   AtualizarHitbox(m);
 }
@@ -195,8 +200,8 @@ void DesenharEntidade(Entidade e) {
       int escala = (32 * ESCALA) / largura ;
 
       s->dst = (Rectangle){
-	e.posicao.x - largura / 2,
-	e.posicao.y - altura / 2,
+	e.posicao.x - (20 * ESCALA),
+	e.posicao.y - (9 * ESCALA),
 	largura * escala * 3,
 	altura * escala * 3
       };
