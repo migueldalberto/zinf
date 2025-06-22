@@ -8,35 +8,15 @@
 #include "defs.h"
 #include "sprite.h"
 #include "mapa.h"
+#include "entidade.h"
+#include "controles.h"
+#include "menu.h"
 
-#define VEL_JOGADOR 4
-
-typedef enum { OESTE, LESTE, NORTE, SUL } Orientacao;
-
-typedef struct {
-  int vida;
-  int pontuacao;
-  Vector2 posicao;
-  Vector2 deslocamento;
-  Rectangle hitbox;
-  Orientacao orientacao;
-  bool espada;
-  Sprite sprites[3];
-  enum {
-    PARADO = 0,
-    CAMINHANDO,
-    ATACANDO
-  } spriteAtual;
-} Jogador;
-
-typedef struct {
-  Sprite sprite;
-  int vida;
-  int pontuacao;
-  Vector2 posicao;
-  Vector2 deslocamento;
-  Orientacao orientacao;
-} Monstro;
+typedef enum {
+    MENU_PRINCIPAL,
+    JOGANDO,
+    FIM_DE_JOGO
+} Cena;
 
 void DesenharStatus(int vida, int nivel, int pontuacao) {
   DrawRectangle(0, 0, LARGURA, ALTURA_STATUS, BLACK);
@@ -57,6 +37,13 @@ void IniciarMapaTeste(Mapa* m) {
     for (int j = 0; j < 24; ++j)
       m->tiles[i][j] = GRAMA;
 
+  int i = 4;
+  for (int j = 8; j < 18; ++j) 
+    m->tiles[i][j] = PEDRA;
+
+  i = 12;
+  for (int j = 8; j < 18; ++j) 
+    m->tiles[i][j] = PEDRA;
 
   MapaGerarRetangulos(m);
 
@@ -67,55 +54,27 @@ void IniciarMapaTeste(Mapa* m) {
 
   for (int i = 0; i < m->nDeMonstros; ++i) {
     m->posicaoMonstros[i].x = (rand() % 24) * 32;
-    m->posicaoMonstros[i].y = (rand() % 16) * 32;
+    m->posicaoMonstros[i].y = ((rand() % 16) * 32) + ALTURA_STATUS;
   }
 }
 
-void MonstroMove(Monstro* m) {
-  if (m->sprite.frameAtual == 4) {
-    int v = VEL_JOGADOR + 4;
-    int dx = 0;
-    int dy = 0;
-
-    switch(m->orientacao) {
-    case NORTE: dy = v; break;
-    case SUL: dy = -v; break;
-    case LESTE: dx = v; break;
-    case OESTE: dx = -v; break;
-    }
-
-    m->deslocamento.x = dx;
-    m->deslocamento.y = dy;
-  } else {
-    m->deslocamento.x = 0;
-    m->deslocamento.y = 0;
-  }
-
-  m->posicao = Vector2Add(m->posicao, m->deslocamento);
-}
-
-void LerControles (Jogador* jogador) {
-  bool n,s,l,o;
-  n = IsKeyDown(KEY_W);
-  s = IsKeyDown(KEY_S);
-  l = IsKeyDown(KEY_D) && ! (n || s);
-  o = IsKeyDown(KEY_A) && ! (n || s);
-
-  jogador->deslocamento = (Vector2){
-    (n || s) ? 0 : (l - o) * VEL_JOGADOR,
-    (l || o) ? 0 : (s - n) * VEL_JOGADOR
-  };
-
-  jogador->spriteAtual = (jogador->deslocamento.x != 0 || jogador->deslocamento.y != 0) ? CAMINHANDO : PARADO;
+void MenuPrincipal(Cena* cenaDoJogo) {
+  Botao botaoJogar = NovoBotao("Jogar", LARGURA / 3, ALTURA / 2, DARKBLUE, WHITE);
+  Botao botaoRanking = NovoBotao("Ranking", LARGURA / 3, ALTURA / 2 + 100, DARKBLUE, WHITE);
     
-  if (n && !(l || o))
-    jogador->orientacao = NORTE;
-  else if (s && !(l || o))
-    jogador->orientacao = SUL;
-  else if (l && !(n || s))
-    jogador->orientacao = LESTE;
-  else if (o && !(n || s))
-    jogador->orientacao = OESTE;
+  if (IsMouseButtonPressed(0)) {
+    Vector2 click = GetMousePosition();
+    if (CheckCollisionPointRec(click, botaoJogar.ret)) {
+      *cenaDoJogo = JOGANDO;
+    } else if (CheckCollisionPointRec(click, botaoRanking.ret)) ;
+  }
+
+  BeginDrawing();
+  ClearBackground(GRAY);
+  DrawText("ZINF", LARGURA / 3, 32, 96, WHITE);
+  DesenharBotao(botaoJogar);
+  DesenharBotao(botaoRanking);
+  EndDrawing();
 }
 
 int main () {
@@ -126,97 +85,136 @@ int main () {
   srand(time(NULL));
 
   Mapa mapa;
-
   IniciarMapaTeste(&mapa);
 
-  Texture2D jogadorParado = LoadTexture("assets/jogador_parado.png");
-  Texture2D jogadorCaminha = LoadTexture("assets/jogador_caminha.png");
-  Texture2D jogadorAtaca = LoadTexture("assets/jogador_ataca.png");
-
-  Texture2D texturaMonstro = LoadTexture("assets/slime_verde_anda.png");
-
-  Jogador jogador = {
-    .vida = 3,
-    .pontuacao = 0,
-    .posicao = mapa.posicaoJogador,
-    .deslocamento = {0},
-    .orientacao = LESTE,
-    .espada = false,
-    .hitbox = {
-      .x = mapa.posicaoJogador.x,
-      .y = mapa.posicaoJogador.y + 12,
-      .width = 12,
-      .height = 20
-    },
-    .sprites = {
-      NovaSprite(&jogadorParado, 4),
-      NovaSprite(&jogadorCaminha, 8),
-      NovaSprite(&jogadorAtaca, 6),
-    },
-    .spriteAtual = PARADO
+  Texture2D jogadorTexturas[3] = {
+    LoadTexture("assets/jogador_parado.png"),
+    LoadTexture("assets/jogador_caminha.png"),
+    LoadTexture("assets/jogador_ataca.png")
   };
+  Texture2D texturaSlimeVerde = LoadTexture("assets/slime_verde_anda.png");
+  Texture2D texturaSlimeVerdeMorre = LoadTexture("assets/slime_verde_morre.png");
 
-  Monstro monstros[mapa.nDeMonstros];
+  Entidade jogador;
+  InicializarEntidade(&jogador, JOGADOR, jogadorTexturas, mapa.posicaoJogador);
+  Entidade monstros[mapa.nDeMonstros];
+  for (int i = 0; i < mapa.nDeMonstros; ++i)
+    InicializarEntidade(&monstros[i], SLIME_VERDE, &texturaSlimeVerde, mapa.posicaoMonstros[i]);
 
-  for (int i = 0; i < mapa.nDeMonstros; ++i) {
-    monstros[i] = (Monstro){
-      .vida = 2,
-      .pontuacao = 5,
-      .sprite = NovaSprite(&texturaMonstro, 5),
-      .posicao = mapa.posicaoMonstros[i],
-      .deslocamento = {0},
-      .orientacao = rand() % 4
-    };
-  }
-  
   SetTargetFPS(30);
 
   int contadorDeFrames = 0;
   int velocidadeAnim = 5;
+ 
+  Cena cenaDoJogo = MENU_PRINCIPAL;
+
+  Sprite animacoesDeMorte[10];
+  int nDeAnimacoesDeMorte = 0;
 
   while(!WindowShouldClose()) {
-    LerControles(&jogador);
-    jogador.posicao = Vector2Add(jogador.posicao, jogador.deslocamento);
+    if (cenaDoJogo == MENU_PRINCIPAL) {
+      MenuPrincipal(&cenaDoJogo);
+    } else if (cenaDoJogo == FIM_DE_JOGO) {
+      BeginDrawing();
+      ClearBackground(WHITE);
+      DesenharMapa(mapa);
+      for (int i = 0; i < mapa.nDeMonstros; ++i)
+	DesenharEntidade(monstros[i]);
+      DesenharStatus(jogador.vida, nivel, jogador.pontuacao);
+      DrawRectangle(0, 0, LARGURA, ALTURA, Fade(BLACK, 0.8));
+      DrawText("Você morreu", LARGURA / 4, 96, 96, RED);
+      Botao bMenuPrincipal = NovoBotao("Menu Principal", LARGURA / 4, ALTURA / 2 + 100, DARKBLUE, WHITE);
+      Botao bSalvarPontuacao = NovoBotao("Salvar pontuação", LARGURA / 4, ALTURA / 2, YELLOW, WHITE);
+      DesenharBotao(bMenuPrincipal);
+      DesenharBotao(bSalvarPontuacao);
+      EndDrawing();
+    } else {
+      LerControles(&jogador, monstros, mapa.nDeMonstros);
+      jogador.posicao = Vector2Add(jogador.posicao, jogador.deslocamento);
+      AtualizarHitbox(&jogador);
+      AtualizarEfeitos(&jogador);
+      if (ForaDoMapa(jogador) || DentroDePedra(jogador, mapa))
+	ReverterMovimento(&jogador);
 
-    for (int i = 0; i < mapa.nDeMonstros; ++i) {
-      MonstroMove(&monstros[i]);
-    }
-    
-    if (contadorDeFrames >= 30 / velocidadeAnim) {
-      contadorDeFrames = 0;
-
-      Sprite *s = &jogador.sprites[jogador.spriteAtual];
-      s->frameAtual++;
-      if (s->frameAtual >= s->numeroDeFrames)
-	  s->frameAtual = 0;
-      
       for (int i = 0; i < mapa.nDeMonstros; ++i) {
-	Sprite *sm = &monstros[i].sprite;
-	sm->frameAtual++;
-	if (sm->frameAtual >= sm->numeroDeFrames)
-	  sm->frameAtual = 0;
+	if (monstros[i].vida == 0) {
+	  jogador.pontuacao += monstros[i].pontuacao;
+	  animacoesDeMorte[nDeAnimacoesDeMorte] = NovaSprite(&texturaSlimeVerdeMorre, 5);
+	  AtualizarSprite(&animacoesDeMorte[nDeAnimacoesDeMorte], 0, monstros[i].posicao);
+	  ++nDeAnimacoesDeMorte;
+
+	  for (int j = i; j < mapa.nDeMonstros - 1; ++j) {
+	    monstros[j] = monstros[j + 1];
+	  }
+	  mapa.nDeMonstros--;
+	}
+	
+	SlimeOrientacao(&monstros[i], jogador.hitbox);
+	SlimeMove(&monstros[i]);
+	if (ForaDoMapa(monstros[i]) || DentroDePedra(monstros[i], mapa))
+	  ReverterMovimento(&monstros[i]);
+
+	AtualizarEfeitos(&monstros[i]);
+
+	if (ChecarColisao(monstros[i], jogador) && !(jogador.efeitos & DANO)) {
+	  jogador.efeitos |= DANO;
+	  jogador.posicao = Vector2Add(jogador.posicao, Vector2Scale(monstros[i].deslocamento, 2));
+	  jogador.vida -= 1;
+	  AtualizarHitbox(&jogador);
+	}
       }
-    }
-    
-    AtualizarSprite(&jogador.sprites[jogador.spriteAtual], jogador.orientacao, jogador.posicao);
-    for (int i = 0; i < mapa.nDeMonstros; ++i) {
-      AtualizarSprite(&monstros[i].sprite, monstros[i].orientacao, monstros[i].posicao);
-    }
-    
-    BeginDrawing();
-    ClearBackground(WHITE);
-    DesenharMapa(mapa);
-    DesenharSprite(jogador.sprites[jogador.spriteAtual]);
-    for (int i = 0; i < mapa.nDeMonstros; ++i) {
-      DesenharSprite(monstros[i].sprite);
-    }
-    
-    DesenharStatus(jogador.vida, nivel, jogador.pontuacao);
+      
+      if (jogador.vida == 0) {
+	cenaDoJogo = FIM_DE_JOGO;
+      }
 
-    EndDrawing();
+      if (contadorDeFrames >= 30 / velocidadeAnim) {
+	contadorDeFrames = 0;
 
-    ++contadorDeFrames;
+	Sprite *s = &jogador.sprites[jogador.spriteAtual];
+	ProximoFrame(s);
+
+	for(int i = 0; i < nDeAnimacoesDeMorte; ++i) {
+	  ProximoFrame(&animacoesDeMorte[i]);
+	  AtualizarSpriteSrcFrame(&animacoesDeMorte[i]);
+	  if (animacoesDeMorte[i].frameAtual == 4) {
+	    for (int j = 0; j < nDeAnimacoesDeMorte - 1; ++j) {
+	      animacoesDeMorte[j] = animacoesDeMorte[j + 1];
+	    }
+	    nDeAnimacoesDeMorte--;
+	  }
+	}
+      
+	for (int i = 0; i < mapa.nDeMonstros; ++i) {
+	  Sprite *sm = monstros[i].sprites;
+	  ProximoFrame(sm);
+	}
+      }
+    
+      AtualizarSprite(&jogador.sprites[jogador.spriteAtual], jogador.orientacao, jogador.posicao);
+      for (int i = 0; i < mapa.nDeMonstros; ++i)
+	AtualizarSprite(monstros[i].sprites, monstros[i].orientacao, monstros[i].posicao);
+    
+      BeginDrawing();
+      ClearBackground(WHITE);
+      DesenharMapa(mapa);
+      DesenharEntidade(jogador);
+
+      for (int i = 0; i < mapa.nDeMonstros; ++i)
+	DesenharEntidade(monstros[i]);
+
+      for (int i = 0; i < nDeAnimacoesDeMorte; ++i)
+	DesenharSprite(animacoesDeMorte[i]);
+    
+      DesenharStatus(jogador.vida, nivel, jogador.pontuacao);
+      // DesenharHitscan(&jogador);
+      EndDrawing();
+
+      ++contadorDeFrames;
+    }
   }
 
   CloseWindow();
+
+  SalvarMapa(mapa, "mapa.txt");
 }
