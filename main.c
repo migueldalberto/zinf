@@ -11,11 +11,14 @@
 #include "entidade.h"
 #include "controles.h"
 #include "menu.h"
+#include "ranking.h"
 
 typedef enum {
     MENU_PRINCIPAL,
     JOGANDO,
-    FIM_DE_JOGO
+    FIM_DE_JOGO,
+    RANKING,
+    SUCESSO
 } Cena;
 
 void DesenharStatus(int vida, int nivel, int pontuacao) {
@@ -32,13 +35,41 @@ void DesenharStatus(int vida, int nivel, int pontuacao) {
 	   );
 }
 
+void CenaRanking() {
+  Ranking r;
+  
+  BeginDrawing();
+  ClearBackground(GRAY);
+
+  int cw = 16;
+  DrawText("Ranking", LARGURA / 2 - (3.5 * cw), 16, 32, WHITE);
+  
+  if (CarregarRanking(&r, "ranking.bin") == 0) {
+
+    for (int i = 0; i < r.tam; ++i) {
+      Color c = i % 2 == 0 ? YELLOW : ORANGE;
+      DrawText(r.linhas[i].nome, LARGURA / 2 - (20 * cw), 16 + (i * 36), 32, c);
+      DrawText(TextFormat("%9d", r.linhas[i].score), LARGURA / 2 + (9 * cw), 16 + (i * 36), 32, c);
+    }
+
+  } else {
+    DrawText("--ranking vazio--", LARGURA / 2 - (8.5 * cw), 20 + 32, 32, YELLOW);
+  }
+  
+  EndDrawing();
+  
+  FreeRanking(r);
+}
+
 void MenuPrincipal(Cena* cenaDoJogo) {
   Botao botaoJogar = NovoBotao("Jogar", LARGURA / 3, ALTURA / 2, DARKBLUE, WHITE);
   Botao botaoRanking = NovoBotao("Ranking", LARGURA / 3, ALTURA / 2 + 100, DARKBLUE, WHITE);
 
   if (CliqueNoBotao(botaoJogar))
     *cenaDoJogo = JOGANDO;
-  else if (CliqueNoBotao(botaoRanking)) { } // TODO: implementar ranking
+  else if (CliqueNoBotao(botaoRanking)) {
+    *cenaDoJogo = RANKING;
+  }
 
   BeginDrawing();
   ClearBackground(GRAY);
@@ -121,6 +152,8 @@ int main () {
       MenuPrincipal(&cenaDoJogo);
     else if (cenaDoJogo == FIM_DE_JOGO)
       FimDeJogo(mapa, nDeMonstros, monstros, jogador, nivel, &texturaMapa);
+    else if (cenaDoJogo == RANKING)
+      CenaRanking();
     else {
       LerControles(&jogador, monstros, nDeMonstros);
       jogador.posicao = Vector2Add(jogador.posicao, jogador.deslocamento);
