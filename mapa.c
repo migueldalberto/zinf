@@ -137,3 +137,28 @@ void DesenharMapa(Mapa m, Texture2D* tileset) {
     }
   }
 }
+
+void IniciarMapaTeste(Mapa* m) {
+  for (int i = 0; i < 16; ++i)
+    for (int j = 0; j < 24; ++j)
+      m->tiles[i][j] = GRAMA;
+
+  int i = 4;
+  for (int j = 8; j < 18; ++j) 
+    m->tiles[i][j] = PEDRA;
+
+  i = 12;
+  for (int j = 8; j < 18; ++j) 
+    m->tiles[i][j] = PEDRA;
+
+  MapaGerarRetangulos(m);
+
+  m->posicaoJogador = (Vector2){ (8 * 32), 6 * 32};
+
+  m->nDeMonstros = (rand() % 10) + 1;
+
+  for (int i = 0; i < m->nDeMonstros; ++i) {
+    m->posicaoMonstros[i].x = (rand() % 24);
+    m->posicaoMonstros[i].y = (rand() % 16);
+  }
+}
