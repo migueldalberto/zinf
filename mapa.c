@@ -153,12 +153,21 @@ void IniciarMapaTeste(Mapa* m) {
 
   MapaGerarRetangulos(m);
 
-  m->posicaoJogador = (Vector2){ (8 * 32), 6 * 32};
+  m->posicaoJogador = (Vector2){ 8, 6 };
 
   m->nDeMonstros = (rand() % 10) + 1;
-
   for (int i = 0; i < m->nDeMonstros; ++i) {
     m->posicaoMonstros[i].x = (rand() % 24);
     m->posicaoMonstros[i].y = (rand() % 16);
   }
+
+  m->nDeVidas = (rand() % 5) + 1;
+
+  for (int i = 0; i < m->nDeVidas; ++i) {
+    m->posicaoVidas[i].x = (rand() % 24);
+    m->posicaoVidas[i].y = (rand() % 16);
+  }
+
+  m->posicaoEspada.x = rand() % 24;
+  m->posicaoEspada.y = rand() % 16;
 }
