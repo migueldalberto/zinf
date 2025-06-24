@@ -63,7 +63,7 @@ void MenuPrincipal(Cena* cenaDoJogo) {
 
   if (CliqueNoBotao(botaoJogar))
     *cenaDoJogo = JOGANDO;
-  else if (CliqueNoBotao(botaoRanking)) ;
+  else if (CliqueNoBotao(botaoRanking)) { } // TODO: implementar ranking
 
   BeginDrawing();
   ClearBackground(GRAY);
