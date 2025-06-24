@@ -53,8 +53,8 @@ void IniciarMapaTeste(Mapa* m) {
   m->nDeMonstros = (rand() % 10) + 1;
 
   for (int i = 0; i < m->nDeMonstros; ++i) {
-    m->posicaoMonstros[i].x = (rand() % 24) * 32;
-    m->posicaoMonstros[i].y = ((rand() % 16) * 32) + ALTURA_STATUS;
+    m->posicaoMonstros[i].x = (rand() % 24);
+    m->posicaoMonstros[i].y = (rand() % 16);
   }
 }
 
@@ -97,9 +97,13 @@ int main () {
 
   Entidade jogador;
   InicializarEntidade(&jogador, JOGADOR, jogadorTexturas, mapa.posicaoJogador);
-  Entidade monstros[mapa.nDeMonstros];
-  for (int i = 0; i < mapa.nDeMonstros; ++i)
-    InicializarEntidade(&monstros[i], SLIME_VERDE, &texturaSlimeVerde, mapa.posicaoMonstros[i]);
+  int nDeMonstros = mapa.nDeMonstros;
+  Entidade monstros[nDeMonstros];
+  for (int i = 0; i < mapa.nDeMonstros; ++i) {
+    InicializarEntidade(&monstros[i], SLIME_VERDE, &texturaSlimeVerde,
+			Vector2Add(Vector2Scale(mapa.posicaoMonstros[i], 32), (Vector2){ 0, ALTURA_STATUS})
+			);
+  }
 
   SetTargetFPS(30);
 
@@ -185,14 +189,14 @@ int main () {
 	  }
 	}
       
-	for (int i = 0; i < mapa.nDeMonstros; ++i) {
+	for (int i = 0; i < nDeMonstros; ++i) {
 	  Sprite *sm = monstros[i].sprites;
 	  ProximoFrame(sm);
 	}
       }
     
       AtualizarSprite(&jogador.sprites[jogador.spriteAtual], jogador.orientacao, jogador.posicao);
-      for (int i = 0; i < mapa.nDeMonstros; ++i)
+      for (int i = 0; i < nDeMonstros; ++i)
 	AtualizarSprite(monstros[i].sprites, monstros[i].orientacao, monstros[i].posicao);
     
       BeginDrawing();
@@ -200,7 +204,7 @@ int main () {
       DesenharMapa(mapa);
       DesenharEntidade(jogador);
 
-      for (int i = 0; i < mapa.nDeMonstros; ++i)
+      for (int i = 0; i < nDeMonstros; ++i)
 	DesenharEntidade(monstros[i]);
 
       for (int i = 0; i < nDeAnimacoesDeMorte; ++i)
