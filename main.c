@@ -89,7 +89,7 @@ void FimDeJogo
   Botao bMenuPrincipal = NovoBotao("Menu Principal", LARGURA / 5, ALTURA / 2 + 100, DARKBLUE, WHITE);
   Botao bSalvarPontuacao = NovoBotao("Salvar pontuação", LARGURA / 5, ALTURA / 2, DARKBLUE, WHITE);
 
-  if (CliqueNoBotao(bMenuPrincipal)) ; // TODO: implementar botão
+  if (CliqueNoBotao(bMenuPrincipal)) { } // TODO: implementar botão
 
   BeginDrawing();
   ClearBackground(WHITE);
