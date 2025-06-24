@@ -17,9 +17,14 @@ typedef enum {
     MENU_PRINCIPAL,
     JOGANDO,
     FIM_DE_JOGO,
-    RANKING,
-    SUCESSO
+    RANKING
 } Cena;
+
+char* niveis[3] = {
+  "mapas/mapa01.txt",
+  "mapas/mapa02.txt",
+  NULL,
+};
 
 void DesenharStatus(int vida, int nivel, int pontuacao) {
   DrawRectangle(0, 0, LARGURA, ALTURA_STATUS, BLACK);
@@ -115,9 +120,11 @@ int main () {
   Texture2D texturaMapa = LoadTexture("assets/tileset.png");
   Mapa mapa;
   // IniciarMapaTeste(&mapa);
-  if (CarregarMapa(&mapa, "mapas/mapa01.txt")) {
+  if (CarregarMapa(&mapa, niveis[nivel])) {
     return 1;
   }
+
+  bool niveisAleatorios = false;
 
   Texture2D jogadorTexturas[3] = {
     LoadTexture("assets/jogador_parado.png"),
@@ -130,7 +137,7 @@ int main () {
   Entidade jogador;
   InicializarEntidade(&jogador, JOGADOR, jogadorTexturas, ConverterPosicaoMapaTela(mapa.posicaoJogador));
   int nDeMonstros = mapa.nDeMonstros;
-  Entidade monstros[nDeMonstros];
+  Entidade monstros[10];
   for (int i = 0; i < mapa.nDeMonstros; ++i) {
     InicializarEntidade(&monstros[i], SLIME_VERDE, &texturaSlimeVerde,
 			ConverterPosicaoMapaTela(mapa.posicaoMonstros[i])
@@ -188,6 +195,25 @@ int main () {
 	  jogador.vida -= 1;
 	  AtualizarHitbox(&jogador);
 	}
+      }
+
+      if (nDeMonstros == 0) {
+	++nivel;
+	if (niveisAleatorios) {
+	  GerarMapaAleatorio(&mapa, nivel);
+	} else if (niveis[nivel] == NULL)
+	  niveisAleatorios = true;
+	else
+	  CarregarMapa(&mapa, niveis[nivel]);
+	
+	jogador.espada = false;
+	jogador.posicao = ConverterPosicaoMapaTela(mapa.posicaoJogador);
+	nDeMonstros = mapa.nDeMonstros;
+	for (int i = 0; i < mapa.nDeMonstros; ++i) {
+	  InicializarEntidade(&monstros[i], SLIME_VERDE, &texturaSlimeVerde,
+			      ConverterPosicaoMapaTela(mapa.posicaoMonstros[i])
+			      );
+	  }
       }
       
       if (jogador.vida == 0) {

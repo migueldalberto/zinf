@@ -23,6 +23,6 @@ int CarregarMapa(Mapa*, char*);
 int SalvarMapa(Mapa, char*);
 void MapaGerarRetangulos(Mapa*);
 void DesenharMapa(Mapa, Texture2D*);
-void IniciarMapaTeste(Mapa*);
+void GerarMapaAleatorio(Mapa*, int);
 
 #endif

@@ -138,30 +138,34 @@ void DesenharMapa(Mapa m, Texture2D* tileset) {
   }
 }
 
-void IniciarMapaTeste(Mapa* m) {
+void GerarMapaAleatorio(Mapa* m, int n) {
   for (int i = 0; i < 16; ++i)
     for (int j = 0; j < 24; ++j)
       m->tiles[i][j] = GRAMA;
 
-  int i = 4;
+  int i = rand() % 16;
   for (int j = 8; j < 18; ++j) 
     m->tiles[i][j] = PEDRA;
 
-  i = 12;
+  i = rand() % 16;
   for (int j = 8; j < 18; ++j) 
     m->tiles[i][j] = PEDRA;
 
   MapaGerarRetangulos(m);
 
-  m->posicaoJogador = (Vector2){ 8, 6 };
+  do {
+    m->posicaoJogador = (Vector2){ rand() % 24, rand() % 16};
+  } while (m->tiles[(int) m->posicaoJogador.y][(int) m->posicaoJogador.x] == PEDRA);
 
   m->nDeMonstros = (rand() % 10) + 1;
   for (int i = 0; i < m->nDeMonstros; ++i) {
-    m->posicaoMonstros[i].x = (rand() % 24);
-    m->posicaoMonstros[i].y = (rand() % 16);
+    do {
+      m->posicaoMonstros[i].x = (rand() % 24);
+      m->posicaoMonstros[i].y = (rand() % 16);
+    } while (Vector2Equals(m->posicaoMonstros[i], m->posicaoJogador));
   }
 
-  m->nDeVidas = (rand() % 5) + 1;
+  m->nDeVidas = rand() % 6;
 
   for (int i = 0; i < m->nDeVidas; ++i) {
     m->posicaoVidas[i].x = (rand() % 24);
