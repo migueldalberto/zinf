@@ -73,11 +73,11 @@ void MapaGerarRetangulos(Mapa* m) {
   }
 }
 
-void DesenharMapa(Mapa m) {
+void DesenharMapa(Mapa m, Texture2D* tileset) {
   for (int i = 0; i < 16; ++i) {
     for (int j = 0; j < 24; ++j) {
       Rectangle dst = { j * 32 * ESCALA, i * 32 * ESCALA + ALTURA_STATUS, 32 * ESCALA, 32 * ESCALA};
-      DrawTexturePro(m.textura, m.sources[i][j],
+      DrawTexturePro(*tileset, m.sources[i][j],
 		     dst, (Vector2){ 0,0 }, 0.0, WHITE);
     }
   }

@@ -47,7 +47,6 @@ void IniciarMapaTeste(Mapa* m) {
 
   MapaGerarRetangulos(m);
 
-  m->textura = LoadTexture("assets/tileset.png");
   m->posicaoJogador = (Vector2){ (8 * 32), 6 * 32};
 
   m->nDeMonstros = (rand() % 10) + 1;
@@ -79,7 +78,8 @@ void FimDeJogo
  int nDeMonstros,
  Entidade* monstros,
  Entidade jogador,
- int nivel) {
+ int nivel,
+ Texture2D* tileset) {
   Botao bMenuPrincipal = NovoBotao("Menu Principal", LARGURA / 5, ALTURA / 2 + 100, DARKBLUE, WHITE);
   Botao bSalvarPontuacao = NovoBotao("Salvar pontuação", LARGURA / 5, ALTURA / 2, DARKBLUE, WHITE);
 
@@ -88,7 +88,7 @@ void FimDeJogo
 
   BeginDrawing();
   ClearBackground(WHITE);
-  DesenharMapa(mapa);
+  DesenharMapa(mapa, tileset);
   for (int i = 0; i < nDeMonstros; ++i)
     DesenharEntidade(monstros[i]);
   DesenharStatus(jogador.vida, nivel, jogador.pontuacao);
@@ -106,7 +106,8 @@ int main () {
   InitWindow(LARGURA, ALTURA, "ZINF");
 
   srand(time(NULL));
-
+  
+  Texture2D texturaMapa = LoadTexture("assets/tileset.png");
   Mapa mapa;
   IniciarMapaTeste(&mapa);
 
@@ -142,7 +143,7 @@ int main () {
     if (cenaDoJogo == MENU_PRINCIPAL)
       MenuPrincipal(&cenaDoJogo);
     else if (cenaDoJogo == FIM_DE_JOGO)
-      FimDeJogo(mapa, nDeMonstros, monstros, jogador, nivel);
+      FimDeJogo(mapa, nDeMonstros, monstros, jogador, nivel, &texturaMapa);
     else {
       LerControles(&jogador, monstros, nDeMonstros);
       jogador.posicao = Vector2Add(jogador.posicao, jogador.deslocamento);
@@ -212,7 +213,7 @@ int main () {
     
       BeginDrawing();
       ClearBackground(WHITE);
-      DesenharMapa(mapa);
+      DesenharMapa(mapa, &texturaMapa);
       DesenharEntidade(jogador);
 
       for (int i = 0; i < nDeMonstros; ++i)
