@@ -13,5 +13,6 @@ typedef struct {
 
 Botao NovoBotao(char*, float, float, Color cb, Color ct);
 void DesenharBotao(Botao);
+bool CliqueNoBotao(Botao);
 
 #endif

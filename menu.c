@@ -1,6 +1,7 @@
 #include "menu.h"
 
 #include <string.h>
+#include <stdbool.h>
 
 Botao NovoBotao(char* txt, float x, float y, Color cb, Color ct) {
   return (Botao){
@@ -21,4 +22,12 @@ void DesenharBotao(Botao b) {
   DrawText(b.txt, b.ret.x + b.ret.width / 10, b.ret.y + b.ret.height / 10,
 	   b.ret.height * 8 / 10, b.ct
 	   );
+}
+
+bool CliqueNoBotao(Botao b) {
+  if (IsMouseButtonPressed(0)) {
+    return (CheckCollisionPointRec(GetMousePosition(), b.ret));
+  }
+
+  return false;
 }
