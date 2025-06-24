@@ -109,7 +109,10 @@ int main () {
   
   Texture2D texturaMapa = LoadTexture("assets/tileset.png");
   Mapa mapa;
-  IniciarMapaTeste(&mapa);
+  // IniciarMapaTeste(&mapa);
+  if (CarregarMapa(&mapa, "mapas/mapa01.txt")) {
+    return 1;
+  }
 
   Texture2D jogadorTexturas[3] = {
     LoadTexture("assets/jogador_parado.png"),
@@ -120,12 +123,12 @@ int main () {
   Texture2D texturaSlimeVerdeMorre = LoadTexture("assets/slime_verde_morre.png");
 
   Entidade jogador;
-  InicializarEntidade(&jogador, JOGADOR, jogadorTexturas, mapa.posicaoJogador);
+  InicializarEntidade(&jogador, JOGADOR, jogadorTexturas, ConverterPosicaoMapaTela(mapa.posicaoJogador));
   int nDeMonstros = mapa.nDeMonstros;
   Entidade monstros[nDeMonstros];
   for (int i = 0; i < mapa.nDeMonstros; ++i) {
     InicializarEntidade(&monstros[i], SLIME_VERDE, &texturaSlimeVerde,
-			Vector2Add(Vector2Scale(mapa.posicaoMonstros[i], 32), (Vector2){ 0, ALTURA_STATUS})
+			ConverterPosicaoMapaTela(mapa.posicaoMonstros[i])
 			);
   }
 

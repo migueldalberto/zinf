@@ -15,8 +15,11 @@ typedef struct {
   Vector2 posicaoEspada;
   Vector2 posicaoVidas[5];
   int nDeMonstros;
+  int nDeVidas;
 } Mapa;
 
+Vector2 ConverterPosicaoMapaTela(Vector2);
+int CarregarMapa(Mapa*, char*);
 int SalvarMapa(Mapa, char*);
 void MapaGerarRetangulos(Mapa*);
 void DesenharMapa(Mapa, Texture2D*);

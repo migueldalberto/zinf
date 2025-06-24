@@ -2,6 +2,61 @@
 #include "defs.h"
 
 #include <stdio.h>
+#include <raymath.h>
+
+Vector2 ConverterPosicaoMapaTela(Vector2 m) {
+  return Vector2Add(Vector2Scale(m, 32), (Vector2){ 0, ALTURA_STATUS});
+}
+
+int CarregarMapa(Mapa* m, char* nomeArq) {
+  FILE* f = fopen(nomeArq, "r");
+
+  if (f == NULL)
+    return 1;
+
+  char c;
+  int x = 0;
+  int y = 0;
+  m->nDeVidas = 0;
+  m->nDeMonstros = 0;
+  while ((c=fgetc(f)) != EOF && y < 16) {
+    int tile = GRAMA;
+    switch (c) {
+    case '\n':
+      x = 0;
+      ++y;
+    case '\r':
+      continue;
+      break;
+    case 'J':
+      m->posicaoJogador = (Vector2){ x, y };
+      break;
+    case 'V':
+      m->posicaoVidas[m->nDeVidas] = (Vector2){ x, y };
+      m->nDeVidas += 1;
+      break;
+    case 'M':
+      m->posicaoMonstros[m->nDeMonstros] = (Vector2){ x, y };
+      m->nDeMonstros += 1;
+      break;
+    case 'E':
+      m->posicaoEspada = (Vector2){ x, y };
+      break;
+    case 'P':
+      tile = PEDRA;
+      break;
+    default: break;
+    }
+
+    m->tiles[y][x] = tile;
+    ++x;
+  }
+
+  fclose(f);
+
+  MapaGerarRetangulos(m);
+  return 0;
+}
 
 int SalvarMapa(Mapa m, char* nArq) {
   FILE* f = fopen(nArq, "w");
