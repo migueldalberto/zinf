@@ -61,19 +61,42 @@ void IniciarMapaTeste(Mapa* m) {
 void MenuPrincipal(Cena* cenaDoJogo) {
   Botao botaoJogar = NovoBotao("Jogar", LARGURA / 3, ALTURA / 2, DARKBLUE, WHITE);
   Botao botaoRanking = NovoBotao("Ranking", LARGURA / 3, ALTURA / 2 + 100, DARKBLUE, WHITE);
-    
-  if (IsMouseButtonPressed(0)) {
-    Vector2 click = GetMousePosition();
-    if (CheckCollisionPointRec(click, botaoJogar.ret)) {
-      *cenaDoJogo = JOGANDO;
-    } else if (CheckCollisionPointRec(click, botaoRanking.ret)) ;
-  }
+
+  if (CliqueNoBotao(botaoJogar))
+    *cenaDoJogo = JOGANDO;
+  else if (CliqueNoBotao(botaoRanking)) ;
 
   BeginDrawing();
   ClearBackground(GRAY);
   DrawText("ZINF", LARGURA / 3, 32, 96, WHITE);
   DesenharBotao(botaoJogar);
   DesenharBotao(botaoRanking);
+  EndDrawing();
+}
+
+void FimDeJogo
+(Mapa mapa,
+ int nDeMonstros,
+ Entidade* monstros,
+ Entidade jogador,
+ int nivel) {
+  Botao bMenuPrincipal = NovoBotao("Menu Principal", LARGURA / 5, ALTURA / 2 + 100, DARKBLUE, WHITE);
+  Botao bSalvarPontuacao = NovoBotao("Salvar pontuação", LARGURA / 5, ALTURA / 2, DARKBLUE, WHITE);
+
+  if (CliqueNoBotao(bMenuPrincipal))
+    
+
+  BeginDrawing();
+  ClearBackground(WHITE);
+  DesenharMapa(mapa);
+  for (int i = 0; i < nDeMonstros; ++i)
+    DesenharEntidade(monstros[i]);
+  DesenharStatus(jogador.vida, nivel, jogador.pontuacao);
+  DrawRectangle(0, 0, LARGURA, ALTURA, Fade(BLACK, 0.8));
+  DrawText("Você morreu", LARGURA / 4, 96, 96, RED);
+  DrawText(TextFormat("Sua pontuação: %d", jogador.pontuacao), LARGURA / 5, 192, 64, YELLOW);
+  DesenharBotao(bMenuPrincipal);
+  DesenharBotao(bSalvarPontuacao);
   EndDrawing();
 }
 
@@ -116,41 +139,29 @@ int main () {
   int nDeAnimacoesDeMorte = 0;
 
   while(!WindowShouldClose()) {
-    if (cenaDoJogo == MENU_PRINCIPAL) {
+    if (cenaDoJogo == MENU_PRINCIPAL)
       MenuPrincipal(&cenaDoJogo);
-    } else if (cenaDoJogo == FIM_DE_JOGO) {
-      BeginDrawing();
-      ClearBackground(WHITE);
-      DesenharMapa(mapa);
-      for (int i = 0; i < mapa.nDeMonstros; ++i)
-	DesenharEntidade(monstros[i]);
-      DesenharStatus(jogador.vida, nivel, jogador.pontuacao);
-      DrawRectangle(0, 0, LARGURA, ALTURA, Fade(BLACK, 0.8));
-      DrawText("Você morreu", LARGURA / 4, 96, 96, RED);
-      Botao bMenuPrincipal = NovoBotao("Menu Principal", LARGURA / 4, ALTURA / 2 + 100, DARKBLUE, WHITE);
-      Botao bSalvarPontuacao = NovoBotao("Salvar pontuação", LARGURA / 4, ALTURA / 2, YELLOW, WHITE);
-      DesenharBotao(bMenuPrincipal);
-      DesenharBotao(bSalvarPontuacao);
-      EndDrawing();
-    } else {
-      LerControles(&jogador, monstros, mapa.nDeMonstros);
+    else if (cenaDoJogo == FIM_DE_JOGO)
+      FimDeJogo(mapa, nDeMonstros, monstros, jogador, nivel);
+    else {
+      LerControles(&jogador, monstros, nDeMonstros);
       jogador.posicao = Vector2Add(jogador.posicao, jogador.deslocamento);
       AtualizarHitbox(&jogador);
       AtualizarEfeitos(&jogador);
       if (ForaDoMapa(jogador) || DentroDePedra(jogador, mapa))
 	ReverterMovimento(&jogador);
 
-      for (int i = 0; i < mapa.nDeMonstros; ++i) {
+      for (int i = 0; i < nDeMonstros; ++i) {
 	if (monstros[i].vida == 0) {
 	  jogador.pontuacao += monstros[i].pontuacao;
 	  animacoesDeMorte[nDeAnimacoesDeMorte] = NovaSprite(&texturaSlimeVerdeMorre, 5);
 	  AtualizarSprite(&animacoesDeMorte[nDeAnimacoesDeMorte], 0, monstros[i].posicao);
 	  ++nDeAnimacoesDeMorte;
 
-	  for (int j = i; j < mapa.nDeMonstros - 1; ++j) {
+	  for (int j = i; j < nDeMonstros - 1; ++j) {
 	    monstros[j] = monstros[j + 1];
 	  }
-	  mapa.nDeMonstros--;
+	  nDeMonstros--;
 	}
 	
 	SlimeOrientacao(&monstros[i], jogador.hitbox);
@@ -218,7 +229,7 @@ int main () {
     }
   }
 
-  CloseWindow();
-
   SalvarMapa(mapa, "mapa.txt");
+
+  CloseWindow();
 }
