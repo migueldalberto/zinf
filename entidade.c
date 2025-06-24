@@ -7,17 +7,24 @@
 void AtualizarEfeitos(Entidade* e) {
   for (int i = 0; i < 16; ++i) {
     if (e->efeitos & 1<<i) {
-      ++e->timerDeEfeitos[i];
 
       int timeout;
       switch (1<<i) {
-      case DANO: timeout = 15; break;
-      case ATAQUE: timeout = 15; break;
-      }
-      
-      if(e->timerDeEfeitos[i] >= timeout) {
-	e->timerDeEfeitos[i] = 0;
-	e->efeitos -= 1<<i;
+      case DANO:
+	timeout = 15;
+	++e->timerDeEfeitos[i];
+	if(e->timerDeEfeitos[i] >= timeout) {
+	  e->timerDeEfeitos[i] = 0;
+	  e->efeitos -= 1<<i;
+	}
+	break;
+      case ATAQUE:
+	if (e->sprites[e->spriteAtual].frameAtual == 0 && e->timerDeEfeitos[i]) {
+	    e->spriteAtual = PARADO;
+	    e->efeitos -= 1<<i;
+	    e->timerDeEfeitos[i] = 0;
+	} else if (e->sprites[e->spriteAtual].frameAtual == 2)
+	  e->timerDeEfeitos[i] = 1;
       }
     }
   }
