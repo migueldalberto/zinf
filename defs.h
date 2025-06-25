@@ -5,6 +5,6 @@
 #define ALTURA 800
 #define ESCALA 800.0 / (16 * 32)
 #define ALTURA_STATUS 60
-#define VEL_JOGADOR 4
+#define VEL_JOGADOR 6
 
 #endif
