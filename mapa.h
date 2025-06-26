@@ -4,18 +4,28 @@
 #include <raylib.h>
 #include <stdlib.h>
 
+#define ENTIDADES_POS_CAP 100
+
+typedef enum {
+  JOGADOR,
+  SLIME_VERDE,
+  VIDA_EXTRA,
+  ESPADA,
+  PEDRA,
+  SLIME_VERDE_MORTE
+} EntidadeTipo;
+
 typedef struct {
   enum {
-    GRAMA,
-    PEDRA
+    GRAMA
   } tiles[16][24];
   Rectangle sources[16][24];
   Vector2 posicaoJogador;
-  Vector2 posicaoMonstros[10];
-  Vector2 posicaoEspada;
-  Vector2 posicaoVidas[5];
-  int nDeMonstros;
-  int nDeVidas;
+  struct {
+    EntidadeTipo t;
+    Vector2 p;
+  } entidadesPos[ENTIDADES_POS_CAP];
+  int entidadesTam;
 } Mapa;
 
 Vector2 ConverterPosicaoMapaTela(Vector2);

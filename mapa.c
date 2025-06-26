@@ -5,7 +5,14 @@
 #include <raymath.h>
 
 Vector2 ConverterPosicaoMapaTela(Vector2 m) {
-  return Vector2Add(Vector2Scale(m, 32), (Vector2){ 0, ALTURA_STATUS});
+  return Vector2Add(Vector2Scale(m, 32 * ESCALA), (Vector2){ 0, ALTURA_STATUS});
+}
+
+void AdicionarEntidadePos(Mapa *m, EntidadeTipo t, int x, int y) {
+  m->entidadesPos[m->entidadesTam].t = t;
+  m->entidadesPos[m->entidadesTam].p.x = x;
+  m->entidadesPos[m->entidadesTam].p.y = y;
+  m->entidadesTam++;
 }
 
 int CarregarMapa(Mapa* m, char* nomeArq) {
@@ -17,8 +24,8 @@ int CarregarMapa(Mapa* m, char* nomeArq) {
   char c;
   int x = 0;
   int y = 0;
-  m->nDeVidas = 0;
-  m->nDeMonstros = 0;
+  m->entidadesTam = 0;
+
   while ((c=fgetc(f)) != EOF && y < 16) {
     int tile = GRAMA;
     switch (c) {
@@ -32,18 +39,18 @@ int CarregarMapa(Mapa* m, char* nomeArq) {
       m->posicaoJogador = (Vector2){ x, y };
       break;
     case 'V':
-      m->posicaoVidas[m->nDeVidas] = (Vector2){ x, y };
-      m->nDeVidas += 1;
+      puts("VIDA NO MAPA");
+      AdicionarEntidadePos(m, VIDA_EXTRA, x, y);
       break;
     case 'M':
-      m->posicaoMonstros[m->nDeMonstros] = (Vector2){ x, y };
-      m->nDeMonstros += 1;
+      puts("SLIME NO MAPA");
+      AdicionarEntidadePos(m, SLIME_VERDE, x, y);
       break;
     case 'E':
-      m->posicaoEspada = (Vector2){ x, y };
+      AdicionarEntidadePos(m, ESPADA, x, y);
       break;
     case 'P':
-      tile = PEDRA;
+      AdicionarEntidadePos(m, PEDRA, x, y);
       break;
     default: break;
     }
@@ -68,22 +75,21 @@ int SalvarMapa(Mapa m, char* nArq) {
       char c;
       switch (m.tiles[i][j]) {
       case GRAMA: c = ' '; break;
-      case PEDRA: c = 'P'; break;
       }
 
       if (j == m.posicaoJogador.x && i == m.posicaoJogador.y)
 	c = 'J';
 
-      for (int k = 0; k < 10; ++k)
-	if (m.posicaoMonstros[k].x == j && m.posicaoMonstros[k].y == i)
-	  c = 'M';
-
-      if (m.posicaoEspada.x == j && m.posicaoEspada.y == i)
-	c = 'E';
-
-      for (int k = 0; k < 5; ++k)
-	if (m.posicaoVidas[5].x == j && m.posicaoVidas[5].y == i)
-	  c = 'V';
+      for (int k = 0; k < ENTIDADES_POS_CAP; ++k) {
+	if (m.entidadesPos[k].p.x == j && m.entidadesPos[k].p.y == i) {
+	  switch(m.entidadesPos[k].t) {
+	  case SLIME_VERDE: c = 'M'; break;
+	  case ESPADA: c = 'E'; break;
+	  case VIDA_EXTRA: c = 'V'; break;
+	  default: c = ' '; break;
+	  }
+	}
+      }
 
       if (fputc(c, f) == EOF) {
 	fclose(f);
@@ -106,14 +112,6 @@ void MapaGerarRetangulos(Mapa* m) {
     for (int j = 0; j < 24; ++j) {
       int r = rand();
       switch(m->tiles[i][j]) {
-      case PEDRA:
-	m->sources[i][j] = (Rectangle) {
-	  .x = (r % 2) * 32,
-	  .y = 32,
-	  .width = 32,
-	  .height = 32
-	};
-	break;
       case GRAMA:
       default:
 	m->sources[i][j] = (Rectangle){
@@ -139,39 +137,44 @@ void DesenharMapa(Mapa m, Texture2D* tileset) {
 }
 
 void GerarMapaAleatorio(Mapa* m, int n) {
+  m->entidadesTam = 0;
+  
   for (int i = 0; i < 16; ++i)
     for (int j = 0; j < 24; ++j)
       m->tiles[i][j] = GRAMA;
 
-  int i = rand() % 16;
-  for (int j = 8; j < 18; ++j) 
-    m->tiles[i][j] = PEDRA;
+  int espadaX = rand() % 24;
+  int espadaY = rand() % 16;
+  AdicionarEntidadePos(m, ESPADA, espadaX, espadaY);
+  m->posicaoJogador.x = rand() % 24;
+  m->posicaoJogador.y = rand() % 16;
 
-  i = rand() % 16;
-  for (int j = 8; j < 18; ++j) 
-    m->tiles[i][j] = PEDRA;
+  int nDePedras = 16 * 24 / 10 / 3;
+  for (int i = 0; i < nDePedras; ++i) {
+    int x, y;
+    do {
+      x = rand() % 24;
+      y = rand() % 16;
+    } while((x == m->posicaoJogador.x && y == m->posicaoJogador.y) ||
+	    (x == espadaX && y == espadaY));
+    AdicionarEntidadePos(m, PEDRA, x, y);
+  }
 
   MapaGerarRetangulos(m);
 
-  do {
-    m->posicaoJogador = (Vector2){ rand() % 24, rand() % 16};
-  } while (m->tiles[(int) m->posicaoJogador.y][(int) m->posicaoJogador.x] == PEDRA);
-
-  m->nDeMonstros = (rand() % 10) + 1;
-  for (int i = 0; i < m->nDeMonstros; ++i) {
+  int nDeMonstros = (rand() % 10) + 1;
+  for (int i = 0; i < nDeMonstros; ++i) {
+    int x, y;
     do {
-      m->posicaoMonstros[i].x = (rand() % 24);
-      m->posicaoMonstros[i].y = (rand() % 16);
-    } while (Vector2Equals(m->posicaoMonstros[i], m->posicaoJogador));
+      x = rand() % 24;
+      y = rand() % 16;
+    } while((x == m->posicaoJogador.x && y == m->posicaoJogador.y) ||
+	    (x == espadaX && y == espadaY));
+    AdicionarEntidadePos(m, SLIME_VERDE, x, y);
   }
 
-  m->nDeVidas = rand() % 6;
-
-  for (int i = 0; i < m->nDeVidas; ++i) {
-    m->posicaoVidas[i].x = (rand() % 24);
-    m->posicaoVidas[i].y = (rand() % 16);
-  }
-
-  m->posicaoEspada.x = rand() % 24;
-  m->posicaoEspada.y = rand() % 16;
+  int nDeVidas = rand() % 6;
+  
+  for (int i = 0; i < nDeVidas; ++i) 
+    AdicionarEntidadePos(m, VIDA_EXTRA, rand() % 24, rand() % 16);
 }

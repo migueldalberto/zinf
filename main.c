@@ -13,6 +13,7 @@
 #include "menu.h"
 #include "ranking.h"
 #include <string.h>
+#include <assert.h>
 
 typedef enum {
     MENU_PRINCIPAL,
@@ -33,13 +34,19 @@ typedef struct {
   Texture2D jogador[3];
   Texture2D slime;
   Texture2D slimeMorre;
+  Texture2D vidaExtra;
+  Texture2D espada;
+  Texture2D pedra;
+  Texture2D semTextura;
 } Texturas;
+
+#define ENTIDADES_CAP 100
 
 typedef struct {
   Ranking ranking;
   Entidade jogador;
-  Entidade monstros[10];
-  int nDeMonstros;
+  Entidade entidades[ENTIDADES_CAP];
+  int entidadesTam;
   int nivel;
   Cena cena;
   Mapa mapa;
@@ -47,20 +54,73 @@ typedef struct {
   Texturas* texturas;
 } Jogo;
 
-void InicioDeJogo(Jogo* jg) {
-  if (CarregarMapa(&jg->mapa, niveis[jg->nivel]))
+void RemoverEntidade(Jogo* jg, int i) {
+  for (int j = i; j < jg->entidadesTam - 1; ++j) {
+    jg->entidades[j] = jg->entidades[j + 1];
+  }
+  jg->entidadesTam -= 1;
+}
+
+#include <stdio.h>
+
+int AdicionarEntidade(Jogo* jg, EntidadeTipo tipo, Vector2 posicao) {
+    assert(jg->entidadesTam < ENTIDADES_CAP);
+
+  Texture2D* textura;
+
+  switch (tipo) {
+  case SLIME_VERDE: textura = &jg->texturas->slime; break;
+  case VIDA_EXTRA: textura = &jg->texturas->vidaExtra; break;
+  case ESPADA: textura = &jg->texturas->espada; break;
+  case PEDRA: textura = &jg->texturas->pedra; break;
+  case SLIME_VERDE_MORTE: textura = &jg->texturas->slimeMorre; break;
+  default: textura = &jg->texturas->semTextura; break;
+  }
+
+  InicializarEntidade(&(jg->entidades[jg->entidadesTam]), tipo, textura,
+		      posicao);
+  jg->entidadesTam += 1;
+  return jg->entidadesTam - 1;
+}
+
+int AdicionarEntidadePosMapa(Jogo* jg, EntidadeTipo tipo, Vector2 posicao) {
+  return AdicionarEntidade(jg, tipo, ConverterPosicaoMapaTela(posicao));
+}
+
+void ProximoNivel(Jogo* jg) {
+  ++jg->nivel;
+  if (jg->gerarNiveisAleatorios) {
+    GerarMapaAleatorio(&jg->mapa, jg->nivel);
+  } else if (niveis[jg->nivel] == NULL) {
     jg->gerarNiveisAleatorios = true;
+    GerarMapaAleatorio(&jg->mapa, jg->nivel);
+  } else
+    CarregarMapa(&jg->mapa, niveis[jg->nivel]);
+  
+  jg->jogador.espada = false;
+  
+  jg->entidadesTam = 0;
+  
+  for (int i = 0; i < jg->mapa.entidadesTam; ++i)
+    AdicionarEntidadePosMapa(jg, jg->mapa.entidadesPos[i].t, jg->mapa.entidadesPos[i].p);
+  
+
+}
+
+void InicioDeJogo(Jogo* jg) {
+  if (CarregarMapa(&jg->mapa, niveis[jg->nivel])) {
+    jg->gerarNiveisAleatorios = true;
+    GerarMapaAleatorio(&jg->mapa, jg->nivel);
+  }
 
   InicializarEntidade(&jg->jogador,
 		      JOGADOR,
 		      jg->texturas->jogador,
 		      ConverterPosicaoMapaTela(jg->mapa.posicaoJogador));
-  jg->nDeMonstros = jg->mapa.nDeMonstros;
-  for (int i = 0; i < jg->mapa.nDeMonstros; ++i) {
-    InicializarEntidade(&jg->monstros[i], SLIME_VERDE, &jg->texturas->slime,
-			ConverterPosicaoMapaTela(jg->mapa.posicaoMonstros[i])
-			);
-  }
+
+  jg->entidadesTam = 0;
+  for (int i = 0; i < jg->mapa.entidadesTam; ++i)
+    AdicionarEntidadePosMapa(jg, jg->mapa.entidadesPos[i].t, jg->mapa.entidadesPos[i].p);
 }
 
 void TrocarCena(Jogo* j, Cena dst) {
@@ -195,8 +255,9 @@ void FimDeJogo (Jogo* j, Texture2D* tileset) {
   BeginDrawing();
   ClearBackground(WHITE);
   DesenharMapa(j->mapa, tileset);
-  for (int i = 0; i < j->nDeMonstros; ++i)
-    DesenharEntidade(j->monstros[i]);
+
+  for(int i = 0; i < j->entidadesTam; ++i)
+    DesenharEntidade(j->entidades[i]);
   
   DesenharStatus(j->jogador.vida, j->nivel, j->jogador.pontuacao);
   DrawRectangle(0, 0, LARGURA, ALTURA, Fade(BLACK, 0.8));
@@ -205,6 +266,11 @@ void FimDeJogo (Jogo* j, Texture2D* tileset) {
   DesenharBotao(bMenuPrincipal);
   DesenharBotao(bSalvarPontuacao);
   EndDrawing();
+}
+
+// função pra ordenar as entidades de acordo com o valor Y de sua posição
+int comp(const void* a, const void* b) {
+  return ((Entidade*) a)->posicao.y > ((Entidade*) b)->posicao.y;
 }
 
 int main () {
@@ -219,22 +285,21 @@ int main () {
       LoadTexture("assets/jogador_ataca.png")
     },
     .slime = LoadTexture("assets/slime_verde_anda.png"),
-    .slimeMorre = LoadTexture("assets/slime_verde_morre.png")
+    .slimeMorre = LoadTexture("assets/slime_verde_morre.png"),
+    .vidaExtra = LoadTexture("assets/vida_extra.png"),
+    .espada = LoadTexture("assets/espada.png"),
+    .pedra = LoadTexture("assets/pedra.png"),
   };
-  
+
   Jogo jg;
   jg.texturas = &texturas;
   
-  // IniciarMapaTeste(&j.mapa);
   jg.cena = MENU_PRINCIPAL;
 
   SetTargetFPS(30);
 
   int contadorDeFrames = 0;
   int velocidadeAnim = 5;
-
-  Sprite animacoesDeMorte[10];
-  int nDeAnimacoesDeMorte = 0;
 
   char cbuf[21];
   int tamBuf = 0;
@@ -249,111 +314,122 @@ int main () {
     else if (jg.cena == LER_NOME) {
       LerNome(cbuf, 20, &tamBuf, &jg);
     } else {
-      LerControles(&jg.jogador, jg.monstros, jg.nDeMonstros);
+      LerControles(&jg.jogador, jg.entidades, jg.entidadesTam);
       jg.jogador.posicao = Vector2Add(jg.jogador.posicao, jg.jogador.deslocamento);
       AtualizarHitbox(&jg.jogador);
       AtualizarEfeitos(&jg.jogador);
-      if (ForaDoMapa(jg.jogador) || DentroDePedra(jg.jogador, jg.mapa))
+      if (ForaDoMapa(jg.jogador))
 	ReverterMovimento(&jg.jogador);
 
-      for (int i = 0; i < jg.nDeMonstros; ++i) {
-	if (jg.monstros[i].vida == 0) {
-	  jg.jogador.pontuacao += jg.monstros[i].pontuacao;
-	  animacoesDeMorte[nDeAnimacoesDeMorte] = NovaSprite(&texturas.slimeMorre, 5);
-	  AtualizarSprite(&animacoesDeMorte[nDeAnimacoesDeMorte], 0, jg.monstros[i].posicao);
-	  ++nDeAnimacoesDeMorte;
+      int nDeMonstros = 0;
 
-	  for (int j = i; j < jg.nDeMonstros - 1; ++j) {
-	    jg.monstros[j] = jg.monstros[j + 1];
+      for (int i = 0; i < jg.entidadesTam; ++i) {
+	Entidade* e = &jg.entidades[i];
+	AtualizarHitbox(e);
+
+	if (e->tipo == SLIME_VERDE) {
+	  if (e->vida == 0) {
+	    jg.jogador.pontuacao += e->pontuacao;
+	    int ind = AdicionarEntidade(&jg, SLIME_VERDE_MORTE, e->posicao);
+	    AtualizarSprite(&jg.entidades[ind]);
+	    RemoverEntidade(&jg, i);
 	  }
-	  jg.nDeMonstros--;
+	  ++nDeMonstros;
+	  SlimeOrientacao(e, jg.jogador.hitbox);
+	  SlimeMove(e);
+	  if (ForaDoMapa(*e))
+	    ReverterMovimento(e);
+	  
+	  AtualizarEfeitos(e);
+	  
+	  if (ChecarColisao(*e, jg.jogador) && !(jg.jogador.efeitos & DANO)) {
+	    jg.jogador.efeitos |= DANO;
+	    // "knockback"
+	    /* jg.jogador.posicao = Vector2Add(jg.jogador.posicao, Vector2Scale(e->deslocamento, 2)); */
+	    jg.jogador.vida -= 1;
+	    AtualizarHitbox(&jg.jogador);
+	  }
+	} else if (e->tipo == ESPADA) {
+	  if (ChecarColisao(*e, jg.jogador)) {
+	    jg.jogador.espada = true;
+	    RemoverEntidade(&jg, i);
+	  }
+	} else if (e->tipo == VIDA_EXTRA) {
+	  if (ChecarColisao(*e, jg.jogador)) {
+	    jg.jogador.vida += 1;
+	    RemoverEntidade(&jg, i);
+	  }
 	}
-	
-	SlimeOrientacao(&jg.monstros[i], jg.jogador.hitbox);
-	SlimeMove(&jg.monstros[i]);
-	if (ForaDoMapa(jg.monstros[i]) || DentroDePedra(jg.monstros[i], jg.mapa))
-	  ReverterMovimento(&jg.monstros[i]);
 
-	AtualizarEfeitos(&jg.monstros[i]);
-
-	if (ChecarColisao(jg.monstros[i], jg.jogador) && !(jg.jogador.efeitos & DANO)) {
-	  jg.jogador.efeitos |= DANO;
-	  jg.jogador.posicao = Vector2Add(jg.jogador.posicao, Vector2Scale(jg.monstros[i].deslocamento, 2));
-	  jg.jogador.vida -= 1;
-	  AtualizarHitbox(&jg.jogador);
+	if (e->obstaculo) {
+	  if (ChecarColisao(*e, jg.jogador))
+	    ReverterMovimento(&jg.jogador);
+	  for (int j = 0; j < jg.entidadesTam; ++j) {
+	    if (j == i) continue;
+	    if (ChecarColisao(*e, jg.entidades[j])) {
+	      ReverterMovimento(&jg.entidades[j]);
+	    }
+	  }
 	}
       }
 
-      if (jg.nDeMonstros == 0) {
-	++jg.nivel;
-	if (jg.gerarNiveisAleatorios) {
-	  GerarMapaAleatorio(&jg.mapa, jg.nivel);
-	} else if (niveis[jg.nivel] == NULL)
-	  jg.gerarNiveisAleatorios = true;
-	else
-	  CarregarMapa(&jg.mapa, niveis[jg.nivel]);
-	
-	jg.nDeMonstros = jg.mapa.nDeMonstros;
-	for (int i = 0; i < jg.mapa.nDeMonstros; ++i) {
-	  jg.jogador.espada = false;
-	  jg.jogador.posicao = ConverterPosicaoMapaTela(jg.mapa.posicaoJogador);
-	  InicializarEntidade(&jg.monstros[i], SLIME_VERDE, &texturas.slime,
-			      ConverterPosicaoMapaTela(jg.mapa.posicaoMonstros[i]));
-	}
-      }
+      if (nDeMonstros == 0)
+	ProximoNivel(&jg);
       
-      if (jg.jogador.vida == 0) {
+      if (jg.jogador.vida == 0)
 	TrocarCena(&jg, FIM_DE_JOGO);
-      }
 
       if (contadorDeFrames >= 30 / velocidadeAnim) {
 	contadorDeFrames = 0;
 
 	Sprite *s = &jg.jogador.sprites[jg.jogador.spriteAtual];
 	ProximoFrame(s);
-
-	for(int i = 0; i < nDeAnimacoesDeMorte; ++i) {
-	  ProximoFrame(&animacoesDeMorte[i]);
-	  AtualizarSpriteSrcFrame(&animacoesDeMorte[i]);
-	  if (animacoesDeMorte[i].frameAtual == 4) {
-	    for (int j = 0; j < nDeAnimacoesDeMorte - 1; ++j) {
-	      animacoesDeMorte[j] = animacoesDeMorte[j + 1];
-	    }
-	    nDeAnimacoesDeMorte--;
-	  }
-	}
       
-	for (int i = 0; i < jg.nDeMonstros; ++i) {
-	  Sprite *sm = jg.monstros[i].sprites;
+	for (int i = 0; i < jg.entidadesTam; ++i) {
+	  Sprite *sm = jg.entidades[i].sprites;
 	  ProximoFrame(sm);
+
+	  if (sm->frameAtual == 4 && jg.entidades[i].tipo == SLIME_VERDE_MORTE)
+	    RemoverEntidade(&jg, i);
 	}
       }
     
-      for (int i = 0; i < jg.nDeMonstros; ++i)
-	AtualizarSprite(jg.monstros[i].sprites, jg.monstros[i].orientacao, jg.monstros[i].posicao);
-      AtualizarSprite(&jg.jogador.sprites[jg.jogador.spriteAtual], jg.jogador.orientacao, jg.jogador.posicao);
+      for (int i = 0; i < jg.entidadesTam; ++i) {
+	Entidade* e = &jg.entidades[i];
+	AtualizarSprite(e);
+      }
+      AtualizarSprite(&jg.jogador);
 
     
       BeginDrawing();
       ClearBackground(WHITE);
       DesenharMapa(jg.mapa, &texturas.tileset);
-      DesenharEntidade(jg.jogador);
+      /* DesenharEntidade(jg.jogador); */
 
-      for (int i = 0; i < jg.nDeMonstros; ++i)
-	DesenharEntidade(jg.monstros[i]);
+      qsort(jg.entidades, jg.entidadesTam, sizeof(Entidade), comp);
 
-      for (int i = 0; i < nDeAnimacoesDeMorte; ++i)
-	DesenharSprite(animacoesDeMorte[i]);
+      bool jogadorDesenhado = false;
+      for (int i = 0; i < jg.entidadesTam; ++i) {
+	if (i == jg.entidadesTam - 1 && !jogadorDesenhado) {
+	  DesenharEntidade(jg.jogador);
+	} else if (jg.jogador.posicao.y < jg.entidades[i].posicao.y &&
+		   jg.jogador.posicao.y >= jg.entidades[i + 1].posicao.y) {
+	  jogadorDesenhado = true;
+	  DesenharEntidade(jg.jogador);
+	}
+	
+	DesenharEntidade(jg.entidades[i]);
+      }
     
       DesenharStatus(jg.jogador.vida, jg.nivel, jg.jogador.pontuacao);
-      DesenharHitscan(&jg.jogador);
+      /* DesenharHitscan(&jg.jogador); */
       EndDrawing();
 
       ++contadorDeFrames;
     }
   }
 
-  SalvarMapa(jg.mapa, "mapa.txt");
+  /* SalvarMapa(jg.mapa, "mapa.txt"); */
 
   CloseWindow();
 }

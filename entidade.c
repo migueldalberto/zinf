@@ -4,6 +4,42 @@
 #include <raymath.h>
 #include <math.h>
 
+void Acelera(Entidade* e, Aceleracao ac) {
+  for (int i = 0; i < 5; ++i) {
+    if (e->aceleracoes[i].mod == 0) {
+      e->aceleracoes[i] = ac;
+      break;
+    }
+  }
+}
+
+void AtualizaDeslocamento(Entidade* e) {
+  float dy = e->deslocamento.y;
+  float dx = e->deslocamento.x;
+
+  for (int i = 0; i < 5; ++i) {
+    Aceleracao ac = e->aceleracoes[i];
+    dy += sin(ac.ang) * ac.mod;
+    dx += cos(ac.ang) * ac.mod;
+  }
+
+  e->deslocamento.y = dy;
+  e->deslocamento.x = dx;
+  while (Vector2Length(e->deslocamento) > e->limiteDeVelocidade) {
+    if (abs((int) e->deslocamento.x) > abs((int) e->deslocamento.y)) {
+      e->deslocamento.x *= 0.9;
+    } else {
+      e->deslocamento.y *= 0.9;
+    }
+  }
+}
+
+void MoveEntidade(Entidade* e) {
+  AtualizaDeslocamento(e);
+  e->posicao = Vector2Add(e->posicao, e->deslocamento);
+  AtualizarHitbox(e);
+}
+
 void AtualizarEfeitos(Entidade* e) {
   for (int i = 0; i < 16; ++i) {
     if (e->efeitos & 1<<i) {
@@ -46,23 +82,6 @@ bool ForaDoMapaRet(Rectangle h) {
     (h.height + h.y) > ALTURA ||
     h.x < 0 ||
     h.y < ALTURA_STATUS;
-}
-
-bool DentroDePedra(Entidade e, Mapa m) {
-  for (int i = 0; i < 16; ++i) {
-    for (int j = 0; j < 24; ++j) {
-      if (m.tiles[i][j] == PEDRA) {
-	Rectangle p = (Rectangle){
-	  .x = j * 32 * ESCALA,
-	  .y = i * 32 * ESCALA + ALTURA_STATUS,
-	  32 * ESCALA, 32 * ESCALA
-	};
-	if (CheckCollisionRecs(p, e.hitbox))
-	  return true;
-      }
-    }
-  }
-  return false;
 }
 
 void DesenharHitbox(Rectangle h) {
@@ -134,7 +153,6 @@ void SlimeOrientacao(Entidade *s, Rectangle hitboxJogador) {
       s->orientacao = LESTE;
     else
       s->orientacao = OESTE;
-
   }
 }
 
@@ -145,6 +163,8 @@ void AtualizarHitbox (Entidade *e) {
 }
 
 void InicializarEntidade(Entidade* e, EntidadeTipo t, Texture2D* texturas, Vector2 posicao) {
+  *e = (Entidade){0};
+  
   switch (t) {
   case JOGADOR:
     *e = (Entidade){
@@ -156,17 +176,17 @@ void InicializarEntidade(Entidade* e, EntidadeTipo t, Texture2D* texturas, Vecto
       .orientacao = LESTE,
       .espada = false,
       .hitbox = {
-	.width = 12 * ESCALA * 2,
+	.width = 13 * ESCALA * 2,
 	.height = 19 * ESCALA * 2
       },
       .hitboxOffset = {
-	.x = 4 * ESCALA,
-	.y = 24 * ESCALA
+	.x = 2 * ESCALA * 2,
+	.y = 12 * ESCALA * 2
       },
       .sprites = {
-	NovaSprite(&texturas[0], 4),
-	NovaSprite(&texturas[1], 8),
-	NovaSprite(&texturas[2], 3),
+	NovaSprite(&texturas[0], 4, true),
+	NovaSprite(&texturas[1], 8, true),
+	NovaSprite(&texturas[2], 3, true),
       },
       .spriteAtual = PARADO,
       .timerDeEfeitos = {0}
@@ -177,7 +197,7 @@ void InicializarEntidade(Entidade* e, EntidadeTipo t, Texture2D* texturas, Vecto
       .tipo = t,
       .vida = 2,
       .pontuacao = 5,
-      .sprites = { NovaSprite(texturas, 5) },
+      .sprites = { NovaSprite(texturas, 5, true) },
       .posicao = posicao,
       .deslocamento = {0},
       .orientacao = rand() % 4,
@@ -191,6 +211,46 @@ void InicializarEntidade(Entidade* e, EntidadeTipo t, Texture2D* texturas, Vecto
       },
       .timerDeEfeitos = {0}
     };
+    break;
+  case SLIME_VERDE_MORTE:
+    *e = (Entidade) {
+      .tipo = t,
+      .sprites = { NovaSprite(texturas, 5, true) },
+      .posicao = posicao
+    };
+    break;
+  case VIDA_EXTRA:
+    *e = (Entidade) {
+      .tipo = t,
+      .posicao = posicao,
+      .sprites = { NovaSprite(texturas, 4, false) },
+      .hitbox = { posicao.x, posicao.y }
+    };
+    e->hitbox.width = LarguraDaSprite(e->sprites[0]) * ESCALA * 2;
+    e->hitbox.height = e->sprites[0].textura->height * ESCALA * 2;
+    break;
+  case ESPADA:
+    *e = (Entidade) {
+      .tipo = t,
+      .posicao = posicao,
+      .sprites = { NovaSprite(texturas, 1, false) },
+      .hitbox = { posicao.x, posicao.y }
+    };
+    e->hitbox.width = LarguraDaSprite(e->sprites[0]) * ESCALA * 2;
+    e->hitbox.height = e->sprites[0].textura->height * ESCALA * 2;
+    break;
+  case PEDRA:
+    *e = (Entidade) {
+      .tipo = t,
+      .posicao = posicao,
+      .sprites = { NovaSprite(texturas, 1, false) },
+      .hitbox = { posicao.x, posicao.y },
+      .obstaculo = true
+    };
+    e->hitbox.width = (LarguraDaSprite(e->sprites[0]) - 2) * ESCALA;
+    e->hitbox.height = ( e->sprites[0].textura->height - 10) * ESCALA;
+    e->hitboxOffset.x = 1;
+    e->hitboxOffset.y = 0;
     break;
   }
 }
@@ -206,19 +266,36 @@ void DesenharEntidade(Entidade e) {
       int altura = s->textura->height / 4;
       int escala = (32 * ESCALA) / largura ;
 
+      int offsetX = (largura - ((e.sprites[PARADO].textura->width / e.sprites[PARADO].numeroDeFrames)) / 2) - 3;
+
       s->dst = (Rectangle){
-	e.posicao.x - (20 * ESCALA),
-	e.posicao.y - (9 * ESCALA),
+	e.posicao.x - (offsetX * ESCALA),
+	e.posicao.y - (5 * ESCALA),
 	largura * escala * 3,
 	altura * escala * 3
       };
-    }
+    } 
+    
     DesenharSpriteEx(e.sprites[e.spriteAtual], tint);
     break;
-  case SLIME_VERDE:
+  default:
     DesenharSpriteEx(e.sprites[0], tint);
     break;
   }
 
-  //  DesenharHitbox(e.hitbox);
+   /* DesenharHitbox(e.hitbox); */
+}
+
+void AtualizarSprite(Entidade* e) {
+  Sprite* s = &e->sprites[e->spriteAtual];
+  
+  s->src.width = (s->textura->width / s->numeroDeFrames);
+  s->src.height = s->usarOrientacao ? s->textura->height / 4 : s->textura->height;
+  s->src.x = s->frameAtual * s->src.width;
+  s->src.y = e->orientacao * s->src.height;
+
+  s->dst.x = e->posicao.x;
+  s->dst.y = e->posicao.y;
+  s->dst.width = s->src.width * 32 * ESCALA / s->src.width;
+  s->dst.height = s->src.height * ESCALA * 32 / s->src.width;
 }

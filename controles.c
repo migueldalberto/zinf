@@ -62,13 +62,13 @@ void LerControles (Entidade* jogador, Entidade* monstros, int nDeMonstros) {
       jogador->orientacao = OESTE;
   }  
 
-  if (IsKeyPressed(KEY_T) && !(jogador->efeitos & ATAQUE)) {
+  if (IsKeyPressed(KEY_T) && !(jogador->efeitos & ATAQUE) && jogador->espada) {
     jogador->efeitos = ATAQUE;
     jogador->spriteAtual = ATACANDO;
     Rectangle hitscan = GerarHitscan(jogador);
 
     for (int i = 0; i < nDeMonstros; ++i) {
-      if (CheckCollisionRecs(monstros[i].hitbox, hitscan)) {
+      if (monstros[i].tipo == SLIME_VERDE && CheckCollisionRecs(monstros[i].hitbox, hitscan)) {
 	monstros[i].efeitos |= DANO;
 	--monstros[i].vida;
       }

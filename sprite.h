@@ -9,12 +9,13 @@ typedef struct {
   Rectangle dst;
   int frameAtual;
   int numeroDeFrames;
+  bool usarOrientacao;
 } Sprite;
 
-Sprite NovaSprite(Texture2D*, int nDeFrames);
+Sprite NovaSprite(Texture2D*, int nDeFrames, bool);
+float LarguraDaSprite(Sprite);
 void DesenharSprite(Sprite);
 void DesenharSpriteEx(Sprite, Color tint);
-void AtualizarSprite(Sprite*, int orientacao, Vector2 novaPosicao);
 void ProximoFrame(Sprite*);
 void AtualizarSpriteSrcFrame(Sprite*);
 
