@@ -16,6 +16,10 @@ int InicializarRanking(Ranking* r) {
   return 0;
 }
 
+int comparaLinhas(const void* a, const void* b) {
+  return ((RankingLinha*) a)->score < ((RankingLinha*) b)->score;
+}
+
 int RankingAdd(Ranking* r, RankingLinha l) {
   assert(r != NULL);
   assert(r->tam <= r->cap);
@@ -34,6 +38,8 @@ int RankingAdd(Ranking* r, RankingLinha l) {
   }
 
   r->linhas[r->tam++] = l;
+
+  qsort(r->linhas, r->tam, sizeof(RankingLinha), comparaLinhas);
   return 0;
 }
 
@@ -46,11 +52,9 @@ int CarregarRanking(Ranking* r, char* nomeArq) {
   if (f == NULL)
     return 1;
 
-  while (!feof(f)) {
-    RankingLinha l;
-    
-    fread(&l, sizeof(RankingLinha), 1, f);
-    
+  RankingLinha l;
+
+  while (fread(&l, sizeof(RankingLinha), 1, f) == 1) {
     if (RankingAdd(r, l) == 1) {
       fclose(f);
       return 1;

@@ -168,8 +168,9 @@ void CenaRanking(Jogo* j) {
   if (j->ranking.tam != 0) {
     for (int i = 0; i < j->ranking.tam; ++i) {
       Color c = i % 2 == 0 ? YELLOW : ORANGE;
-      DrawText(j->ranking.linhas[i].nome, LARGURA / 2 - (20 * cw), 16 + (i * 36), 32, c);
-      DrawText(TextFormat("%9d", j->ranking.linhas[i].score), LARGURA / 2 + (9 * cw), 16 + (i * 36), 32, c);
+      int y = 48 + (i * 36);
+      DrawText(j->ranking.linhas[i].nome, LARGURA / 2 - (20 * cw), y, 32, c);
+      DrawText(TextFormat("%9d", j->ranking.linhas[i].score), LARGURA / 2 + (9 * cw), y, 32, c);
     }
   } else
     DrawText("--ranking vazio--", LARGURA / 2 - (8.5 * cw), 20 + 32, 32, YELLOW);
