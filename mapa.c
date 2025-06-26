@@ -39,11 +39,9 @@ int CarregarMapa(Mapa* m, char* nomeArq) {
       m->posicaoJogador = (Vector2){ x, y };
       break;
     case 'V':
-      puts("VIDA NO MAPA");
       AdicionarEntidadePos(m, VIDA_EXTRA, x, y);
       break;
     case 'M':
-      puts("SLIME NO MAPA");
       AdicionarEntidadePos(m, SLIME_VERDE, x, y);
       break;
     case 'E':

@@ -61,8 +61,6 @@ void RemoverEntidade(Jogo* jg, int i) {
   jg->entidadesTam -= 1;
 }
 
-#include <stdio.h>
-
 int AdicionarEntidade(Jogo* jg, EntidadeTipo tipo, Vector2 posicao) {
     assert(jg->entidadesTam < ENTIDADES_CAP);
 
